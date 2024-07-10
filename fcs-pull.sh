@@ -9,7 +9,7 @@ set -o pipefail
 
 # Download the falcon-container-sensor-pull.sh script
 curl -O https://raw.githubusercontent.com/CrowdStrike/falcon-scripts/main/bash/containers/falcon-container-sensor-pull/falcon-container-sensor-pull.sh
-
+env
 # Check if the version is provided
 # [ -z "${INPUT_VERSION}" ] && VERSION="" || VERSION="--version ${INPUT_VERSION}"
 VERSION=${INPUT_VERSION:+"--version ${INPUT_VERSION}"}
