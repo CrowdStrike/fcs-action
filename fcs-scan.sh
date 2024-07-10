@@ -85,6 +85,8 @@ for arg in "${ARGS_ARRAY[@]}"; do
     fi
 done
 
+# Execute the FCS CLI tool
+cd "$GITHUB_WORKSPACE" || exit
 FCS_IMAGE="$OUTPUT_FCS_IMAGE"
 FCS_CLI_BIN="/opt/crowdstrike/bin/fcs"
 DOCKER_COMMAND="docker run --rm --platform linux/amd64 -v $(pwd):/workdir -w /workdir --entrypoint $FCS_CLI_BIN $FCS_IMAGE"
