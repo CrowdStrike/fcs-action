@@ -70,7 +70,8 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: fcs-pull
+    - name: Pull FCS CLI Docker image
+      id: fcs-pull
       run: $GITHUB_ACTION_PATH/fcs-pull.sh
       shell: bash
       env:
@@ -78,7 +79,8 @@ runs:
         INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
         INPUT_VERSION: ${{ inputs.version }}
 
-    - id: fcs-scan
+    - name: Run FCS CLI tool
+      id: fcs-scan
       run: $GITHUB_ACTION_PATH/fcs-scan.sh
       shell: bash
       env:
