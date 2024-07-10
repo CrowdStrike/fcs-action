@@ -13,9 +13,6 @@ on:
       version:
         description: 'FCS CLI version to use'
         required: false
-      categories:
-        description: 'Include results for the specified categories'
-        required: false
       config:
         description: 'Path to the scan configuration file'
         required: false
@@ -23,18 +20,6 @@ on:
         description: 'Disable scanning of secrets and passwords in target files'
         required: false
         default: "false"
-      exclude_categories:
-        description: 'Exclude results for the specified categories, accepts a comma-separated list'
-        required: false
-      exclude_paths:
-        description: "Exclude paths from scan, accepts a comma-separated list (e.g. './sample-dir-to-omit/*,sample-file.tf')"
-        required: false
-      exclude_platforms:
-        description: 'Exclude results for the specified platforms, accepts a comma-separated list'
-        required: false
-      exclude_severities:
-        description: 'Exclude results for the specified severities, accepts a comma-separated list'
-        required: false
       fail_on:
         description: 'Comma-separated list of which kind of results should return an exit code different from 0'
         required: false
@@ -44,20 +29,8 @@ on:
       path:
         description: 'Path to local file, local directory or git repo to scan (e.g. ./my-local-dir, git::<git repo>, sample-file.tf)'
         required: true
-      platforms:
-        description: 'Include results for the specified platforms, accepts a comma-separated list (e.g Ansible,CloudFormation)'
-        required: false
-      project_owners:
-        description: 'Comma-separated list of project owners to notify (max 5)'
-        required: false
       report_formats:
         description: 'Comma-separated list of formats in which reports are to be written (e.g. json,sarif)'
-        required: false
-      severities:
-        description: 'Include results for the specified severities, accepts a comma-separated list (e.g. high,medium)'
-        required: false
-      timeout:
-        description: 'Timeout for the scan in seconds'
         required: false
       upload_results:
         description: 'Upload scan results to the CrowdStrike Falcon Console'
@@ -80,19 +53,10 @@ jobs:
           disable_secrets_scan: ${{ inputs.disable_secrets_scan || 'false' }}  # Boolean option
           upload_results: ${{ inputs.upload_results || 'false' }}  # Boolean option
           version: ${{ inputs.version }}  # Optional
-          categories: ${{ inputs.categories }}  # Optional
           config: ${{ inputs.config }}  # Optional
-          exclude_categories: ${{ inputs.exclude_categories }}  # Optional
-          exclude_paths: ${{ inputs.exclude_paths }}  # Optional
-          exclude_platforms: ${{ inputs.exclude_platforms }}  # Optional
-          exclude_severities: ${{ inputs.exclude_severities }}  # Optional
           fail_on: ${{ inputs.fail_on }}  # Optional
           output_path: ${{ inputs.output_path || './' }}  # Optional
-          platforms: ${{ inputs.platforms }}  # Optional
-          project_owners: ${{ inputs.project_owners }}  # Optional
           report_formats: ${{ inputs.report_formats }}  # Optional
-          severities: ${{ inputs.severities }}  # Optional
-          timeout: ${{ inputs.timeout }}  # Optional
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
