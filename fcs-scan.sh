@@ -36,12 +36,11 @@ fi
 
 # Validate the path
 validate_path "${INPUT_PATH}" && PATH_PARAM="-p ${INPUT_PATH}"
-
-# Set variable for client-secret (provided as a secret)
-[[ -n "${FALCON_CLIENT_SECRET}" ]] && CLIENT_SECRET_PARAM="--client-secret ${FALCON_CLIENT_SECRET}"
+# Set creds since they've already been validated
+CLIENT_SECRET_PARAM="--client-secret ${FALCON_CLIENT_SECRET}"
+CLIENT_ID_PARAM="--client-id ${INPUT_FALCON_CLIENT_ID}"
+FALCON_REGION_PARAM="--falcon-region ${INPUT_FALCON_REGION}"
 # Set variables based on recieved inputs
-[[ -n "${INPUT_FALCON_CLIENT_ID}" ]] && CLIENT_ID_PARAM="--client-id ${INPUT_FALCON_CLIENT_ID}"
-[[ -n "${INPUT_FALCON_REGION}" ]] && FALCON_REGION_PARAM="--falcon-region ${INPUT_FALCON_REGION}"
 [[ -n "${INPUT_CATEGORIES}" ]] && CATEGORIES_PARAM="--categories ${INPUT_CATEGORIES}"
 [[ -n "${INPUT_CONFIG}" ]] && CONFIG_PARAM="-c ${INPUT_CONFIG}"
 [[ -n "${INPUT_EXCLUDE_CATEGORIES}" ]] && EXCLUDE_CATEGORIES_PARAM="--exclude-categories ${INPUT_EXCLUDE_CATEGORIES}"
