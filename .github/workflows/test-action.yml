@@ -50,13 +50,13 @@ jobs:
           falcon_client_id: ${{ inputs.falcon_client_id }}  # Required
           falcon_region: ${{ inputs.falcon_region }}  # Required
           path: ${{ inputs.path }}  # Required
-          disable_secrets_scan: ${{ inputs.disable_secrets_scan || 'false' }}  # Boolean option
-          upload_results: ${{ inputs.upload_results || 'false' }}  # Boolean option
-          version: ${{ inputs.version || '' }}  # Optional
-          config: ${{ inputs.config || '' }}  # Optional
-          fail_on: ${{ inputs.fail_on || '' }}  # Optional
-          output_path: ${{ inputs.output_path || './' }}  # Optional
-          report_formats: ${{ inputs.report_formats || '' }}  # Optional
+          disable_secrets_scan: ${{ inputs.disable_secrets_scan != '' && inputs.disable_secrets_scan || 'false' }}
+          upload_results: ${{ inputs.upload_results != '' && inputs.upload_results || 'false' }}
+          version: ${{ inputs.version != '' && inputs.version || '' }}
+          config: ${{ inputs.config != '' && inputs.config || '' }}
+          fail_on: ${{ inputs.fail_on != '' && inputs.fail_on || '' }}
+          output_path: ${{ inputs.output_path != '' && inputs.output_path || './' }}
+          report_formats: ${{ inputs.report_formats != '' && inputs.report_formats || '' }}
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
