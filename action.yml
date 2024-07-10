@@ -1,0 +1,81 @@
+name: 'CrowdStrike FCS CLI GitHub Action'
+description: 'Run FCS IaC scan'
+inputs:
+  falcon_client_id:
+    description: 'CrowdStrike API Client ID for authentication'
+    required: true
+  falcon_region:
+    description: 'CrowdStrike API region. Allowed values are us-1, us-2, eu-1, us-gov-1, us-gov-2'
+    required: true
+    default: us-1
+  version:
+    description: 'FCS CLI version to use'
+    required: false
+  categories:
+    description: 'Include results for the specified categories'
+    required: false
+  config:
+    description: 'Path to the scan configuration file'
+    required: false
+  disable_secrets_scan:
+    description: 'Disable scanning of secrets and passwords in target files'
+    required: false
+    default: 'false'
+  exclude_categories:
+    description: 'Exclude results for the specified categories, accepts a comma-separated list'
+    required: false
+  exclude_paths:
+    description: "Exclude paths from scan, accepts a comma-separated list (e.g. './sample-dir-to-omit/*,sample-file.tf')"
+    required: false
+  exclude_platforms:
+    description: 'Exclude results for the specified platforms, accepts a comma-separated list'
+    required: false
+  exclude_severities:
+    description: 'Exclude results for the specified severities, accepts a comma-separated list'
+    required: false
+  fail_on:
+    description: 'Comma-separated list of which kind of results should return an exit code different from 0'
+    required: false
+  output_path:
+    description: 'Path to save the scan results'
+    required: false
+    default: "./"
+  path:
+    description: 'Path to local file, local directory or git repo to scan (e.g. ./my-local-dir, git::<git repo>, sample-file.tf)'
+    required: true
+  platforms:
+    description: 'Include results for the specified platforms, accepts a comma-separated list (e.g Ansible,CloudFormation)'
+    required: false
+  project_owners:
+    description: 'Comma-separated list of project owners to notify (max 5)'
+    required: false
+  report_formats:
+    description: 'Comma-separated list of formats in which reports are to be written (e.g. json,sarif)'
+    required: false
+  severities:
+    description: 'Include results for the specified severities, accepts a comma-separated list (e.g. high,medium)'
+    required: false
+  timeout:
+    description: 'Timeout for the scan in seconds'
+    required: false
+  upload_results:
+    description: 'Upload scan results to the CrowdStrike Falcon Console'
+    required: false
+    default: 'false'
+outputs:
+  exit-code:
+    description: 'Exit code of the FCS CLI tool'
+    value: ${{ steps.fcs-scan.outputs.exit-code }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: fcs-pull
+      run: $GITHUB_ACTION_PATH/fcs-pull.sh
+      shell: bash
+
+    - id: fcs-scan
+      run: $GITHUB_ACTION_PATH/fcs-scan.sh
+      shell: bash
+      env:
+        OUTPUT_FCS_IMAGE: ${{ steps.fcs-pull.outputs.FCS_IMAGE }}
