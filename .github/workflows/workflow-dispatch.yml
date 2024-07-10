@@ -1,4 +1,4 @@
-name: Test Action
+name: Test Action (workflow_dispatch)
 
 on:
   workflow_dispatch:
@@ -39,7 +39,7 @@ on:
         default: "false"
 
 jobs:
-  scan:
+  fcs-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

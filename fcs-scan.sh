@@ -87,7 +87,7 @@ done
 
 # Execute the FCS CLI tool
 # Allow container write access to the workspace.
-setfacl -m u:999:rwx $GITHUB_WORKSPACE
+setfacl -m u:999:rwx "$GITHUB_WORKSPACE"
 cd "$GITHUB_WORKSPACE" || exit
 FCS_IMAGE="$OUTPUT_FCS_IMAGE"
 FCS_CLI_BIN="/opt/crowdstrike/bin/fcs"

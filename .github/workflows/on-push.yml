@@ -1,0 +1,23 @@
+name: Test Action (push)
+
+on: [push]
+
+jobs:
+  fcs-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test FCS CLI IaC Scan
+        uses: ./
+        with:
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
+          path: tests/
+        env:
+          FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+
+      - name: Show scan results
+        run: |
+          cat *-scan-results.json
