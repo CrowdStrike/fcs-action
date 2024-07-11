@@ -1,100 +1,126 @@
 #!/usr/bin/env bash
-
 # This script is used to execute the FCS CLI tool with the provided arguments.
 # Current context is executing the FCS CLI container.
 
+readonly FCS_CLI_BIN="/opt/crowdstrike/bin/fcs"
+readonly FCS_IMAGE="${OUTPUT_FCS_IMAGE:-}"
+
+log() {
+    local log_level=${2:-INFO}
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S')] $log_level: $1" >&2
+}
+
+die() {
+    log "$1" "ERROR"
+    exit 1
+}
+
 validate_bool() {
-    local value=$1
-    value=$(echo "$value" | tr '[:upper:]' '[:lower:]')
-    if [[ "$value" == "true" ]] || [[ "$value" == "false" ]]; then
-        echo "$value"
-    else
-        echo "Invalid"
-    fi
+    local value
+    value=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    case "$value" in
+        true|false) echo "$value" ;;
+        *) echo "Invalid" ;;
+    esac
 }
 
 validate_path() {
     local path=$1
-    # if the path does not start with git::, then let's test it exists
-    if [[ ! "$path" =~ ^git:: ]]; then
-        if [[ ! -e "$path" ]]; then
-            echo "Path does not exist: $path"
-            exit 1
-        fi
-    fi
+    [[ "$path" =~ ^git:: ]] || [[ -e "$path" ]] || die "Path/file does not exist: $path"
 }
 
-# Validate required inputs
-invalid=false
-[[ -z ${INPUT_FALCON_CLIENT_ID} ]] && echo "Missing required input 'falcon-client-id'" && invalid=true
-[[ -z ${FALCON_CLIENT_SECRET} ]] && echo "Missing required env variable 'FALCON_CLIENT_SECRET'" && invalid=true
-[[ -z ${INPUT_FALCON_REGION} ]] && echo "Missing required input 'falcon-region'" && invalid=true
-[[ -z ${INPUT_PATH} ]] && echo "Missing required input 'path'" && invalid=true
-if [[ "$invalid" == "true" ]]; then
-    exit 1
-fi
+validate_required_inputs() {
+    local invalid=false
+    local -a required_inputs=(
+        "INPUT_FALCON_CLIENT_ID"
+        "FALCON_CLIENT_SECRET"
+        "INPUT_FALCON_REGION"
+        "INPUT_PATH"
+    )
 
-# Validate the path
-validate_path "${INPUT_PATH}" && PATH_PARAM="-p ${INPUT_PATH}"
-# Set creds since they've already been validated
-CLIENT_SECRET_PARAM="--client-secret ${FALCON_CLIENT_SECRET}"
-CLIENT_ID_PARAM="--client-id ${INPUT_FALCON_CLIENT_ID}"
-FALCON_REGION_PARAM="--falcon-region ${INPUT_FALCON_REGION}"
-# Set variables based on recieved inputs
-[[ -n "${INPUT_CATEGORIES}" ]] && CATEGORIES_PARAM="--categories ${INPUT_CATEGORIES}"
-[[ -n "${INPUT_CONFIG}" ]] && CONFIG_PARAM="-c ${INPUT_CONFIG}"
-[[ -n "${INPUT_EXCLUDE_CATEGORIES}" ]] && EXCLUDE_CATEGORIES_PARAM="--exclude-categories ${INPUT_EXCLUDE_CATEGORIES}"
-[[ -n "${INPUT_EXCLUDE_PATHS}" ]] && EXCLUDE_PATHS_PARAM="-e ${INPUT_EXCLUDE_PATHS}"
-[[ -n "${INPUT_EXCLUDE_PLATFORMS}" ]] && EXCLUDE_PLATFORMS_PARAM="--exclude-platforms ${INPUT_EXCLUDE_PLATFORMS}"
-[[ -n "${INPUT_EXCLUDE_SEVERITIES}" ]] && EXCLUDE_SEVERITIES_PARAM="--exclude-severities ${INPUT_EXCLUDE_SEVERITIES}"
-[[ -n "${INPUT_FAIL_ON}" ]] && FAIL_ON_PARAM="--fail-on ${INPUT_FAIL_ON}"
-[[ -n "${INPUT_OUTPUT_PATH}" ]] && OUTPUT_PATH_PARAM="-o ${INPUT_OUTPUT_PATH}"
-[[ -n "${INPUT_PLATFORMS}" ]] && PLATFORMS_PARAM="--platforms ${INPUT_PLATFORMS}"
-[[ -n "${INPUT_PROJECT_OWNERS}" ]] && PROJECT_OWNERS_PARAM="--project-owners ${INPUT_PROJECT_OWNERS}"
-[[ -n "${INPUT_REPORT_FORMATS}" ]] && REPORT_FORMATS_PARAM="-f ${INPUT_REPORT_FORMATS}"
-[[ -n "${INPUT_SEVERITIES}" ]] && SEVERITIES_PARAM="--severities ${INPUT_SEVERITIES}"
-[[ -n "${INPUT_TIMEOUT}" ]] && TIMEOUT_PARAM="-t ${INPUT_TIMEOUT}"
+    for input in "${required_inputs[@]}"; do
+        if [[ -z "${!input:-}" ]]; then
+            log "Missing required input/env variable '${input#INPUT_}'"
+            invalid=true
+        fi
+    done
 
-# Boolean based values
-DISABLE_SECRET_SCAN=$(validate_bool "${INPUT_DISABLE_SECRETS_SCAN}")
-if [[ "$DISABLE_SECRET_SCAN" == "Invalid" ]]; then
-    echo "Invalid value for 'disable-secrets-scan'. Should be 'true' or 'false'."
-    exit 1
-elif [[ "$DISABLE_SECRET_SCAN" == "true" ]]; then
-    DISABLE_SECRET_SCAN_PARAM="--disable-secrets-scan '$DISABLE_SECRET_SCAN'"
-fi
+    [[ "$invalid" == "true" ]] && exit 1
+}
 
-# Handle the upload-results
-UPLOAD_RESULTS=$(validate_bool "${INPUT_UPLOAD_RESULTS}")
-if [[ "$UPLOAD_RESULTS" == "Invalid" ]]; then
-    echo "Invalid value for 'upload-results'. Should be 'true' or 'false'."
-    exit 1
-elif [[ "$UPLOAD_RESULTS" == "true" ]]; then
-    UPLOAD_RESULTS_PARAM="--upload-results $CLIENT_ID_PARAM $CLIENT_SECRET_PARAM $FALCON_REGION_PARAM"
-fi
+set_parameters() {
+    local -a params=()
+    params=(
+        "--path ${INPUT_PATH}"
+    )
 
-# Set the arguments
-# Only set the args if the value is not empty
-ARGS_ARRAY=("$PATH_PARAM" "$CATEGORIES_PARAM" "$CONFIG_PARAM" "$EXCLUDE_CATEGORIES_PARAM" "$EXCLUDE_PATHS_PARAM" "$EXCLUDE_PLATFORMS_PARAM" "$EXCLUDE_SEVERITIES_PARAM" "$FAIL_ON_PARAM" "$OUTPUT_PATH_PARAM" "$PLATFORMS_PARAM" "$PROJECT_OWNERS_PARAM" "$REPORT_FORMATS_PARAM" "$SEVERITIES_PARAM" "$TIMEOUT_PARAM" "$DISABLE_SECRET_SCAN_PARAM" "$UPLOAD_RESULTS_PARAM")
+    local input_params=(
+        "CATEGORIES:categories"
+        "CONFIG:config"
+        "EXCLUDE_CATEGORIES:exclude-categories"
+        "EXCLUDE_PATHS:exclude-paths"
+        "EXCLUDE_PLATFORMS:exclude-platforms"
+        "EXCLUDE_SEVERITIES:exclude-severities"
+        "FAIL_ON:fail-on"
+        "OUTPUT_PATH:output-path"
+        "PLATFORMS:platforms"
+        "PROJECT_OWNERS:project-owners"
+        "REPORT_FORMATS:report-formats"
+        "SEVERITIES:severities"
+        "TIMEOUT:timeout"
+    )
 
-# Filter out the empty values
-ARGS_PARAM=""
-for arg in "${ARGS_ARRAY[@]}"; do
-    if [[ -n "$arg" ]]; then
-        ARGS_PARAM="$ARGS_PARAM $arg"
+    for param in "${input_params[@]}"; do
+        local input_var="INPUT_${param%%:*}"
+        local param_name="${param#*:}"
+        if [[ -n "${!input_var:-}" ]]; then
+            params+=("--${param_name} ${!input_var}")
+        fi
+    done
+
+    local disable_secret_scan
+    disable_secret_scan=$(validate_bool "${INPUT_DISABLE_SECRETS_SCAN:-}")
+    if [[ "$disable_secret_scan" == "true" ]]; then
+        params+=("--disable-secrets-scan true")
+    elif [[ "$disable_secret_scan" == "Invalid" ]]; then
+        die "Invalid value for 'disable-secrets-scan'. Should be 'true' or 'false'."
     fi
-done
 
-# Execute the FCS CLI tool
-# Allow container write access to the workspace.
-setfacl -m u:999:rwx "$GITHUB_WORKSPACE"
-cd "$GITHUB_WORKSPACE" || exit
-FCS_IMAGE="$OUTPUT_FCS_IMAGE"
-FCS_CLI_BIN="/opt/crowdstrike/bin/fcs"
-DOCKER_COMMAND="docker run --rm --platform linux/amd64 -v $(pwd):/workdir -w /workdir --entrypoint $FCS_CLI_BIN $FCS_IMAGE"
-# Execute the FCS CLI tool
-echo "INFO: Executing FCS CLI tool with the following arguments:$ARGS_PARAM"
-$DOCKER_COMMAND iac scan $ARGS_PARAM
-EXIT_CODE=$?
+    local upload_results
+    upload_results=$(validate_bool "${INPUT_UPLOAD_RESULTS:-}")
+    if [[ "$upload_results" == "true" ]]; then
+        params+=("--upload-results --client-id ${INPUT_FALCON_CLIENT_ID} --client-secret ${FALCON_CLIENT_SECRET} --falcon-region ${INPUT_FALCON_REGION}")
+    elif [[ "$upload_results" == "Invalid" ]]; then
+        die "Invalid value for 'upload-results'. Should be 'true' or 'false'."
+    fi
 
-echo "exit-code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+    echo "${params[@]}"
+}
+
+execute_fcs_cli() {
+    local args="$1"
+    local fcs_image="${FCS_IMAGE}"
+    [[ -n "$fcs_image" ]] || die "OUTPUT_FCS_IMAGE is not set. Ensure the FCS CLI container image was pulled successfully."
+
+    setfacl -m u:999:rwx "$GITHUB_WORKSPACE" || die "Failed to set permissions for container user."
+    cd "$GITHUB_WORKSPACE" || die "Failed to change directory to $GITHUB_WORKSPACE"
+
+    local docker_command
+    docker_command="docker run --rm --platform linux/amd64 -v $(pwd):/workdir -w /workdir --entrypoint $FCS_CLI_BIN $fcs_image"
+
+    log "Executing FCS CLI tool with the following arguments: $args"
+    $docker_command iac scan $args
+    local exit_code=$?
+
+    echo "exit-code=$exit_code" >> "$GITHUB_OUTPUT"
+    return $exit_code
+}
+
+main() {
+    validate_required_inputs
+    local args
+    args=$(set_parameters)
+    execute_fcs_cli "$args"
+}
+
+main
