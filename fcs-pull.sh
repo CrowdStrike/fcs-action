@@ -18,5 +18,11 @@ output=$(bash falcon-container-sensor-pull.sh -u ${INPUT_FALCON_CLIENT_ID} -r ${
 # Extract the image name from the output
 image_name=$(echo "$output" | grep ^registry.crowdstrike.com/fcs | tail -n 1)
 
+# Check if the image name is empty
+if [ -z "$image_name" ]; then
+    echo "Failed to get the image name."
+    exit 1
+fi
+
 # Set the image name as an output for the next step to use
 echo "FCS_IMAGE=$image_name" >> $GITHUB_OUTPUT

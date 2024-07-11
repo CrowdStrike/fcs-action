@@ -113,7 +113,6 @@ execute_fcs_cli() {
     local exit_code=$?
 
     echo "exit-code=$exit_code" >> "$GITHUB_OUTPUT"
-    return $exit_code
 }
 
 main() {
