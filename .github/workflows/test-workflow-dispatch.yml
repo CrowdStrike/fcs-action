@@ -1,4 +1,4 @@
-name: Test Action
+name: Test Action (workflow_dispatch)
 
 on:
   workflow_dispatch:
@@ -26,6 +26,7 @@ on:
       output_path:
         description: 'Path to save the scan results'
         required: false
+        default: "./"
       path:
         description: 'Path to local file, local directory or git repo to scan (e.g. ./my-local-dir, git::<git repo>, sample-file.tf)'
         required: true
@@ -38,7 +39,7 @@ on:
         default: "false"
 
 jobs:
-  scan:
+  fcs-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -50,16 +51,16 @@ jobs:
           falcon_client_id: ${{ inputs.falcon_client_id }}  # Required
           falcon_region: ${{ inputs.falcon_region }}  # Required
           path: ${{ inputs.path }}  # Required
-          disable_secrets_scan: ${{ inputs.disable_secrets_scan != '' && inputs.disable_secrets_scan || 'false' }}
-          upload_results: ${{ inputs.upload_results != '' && inputs.upload_results || 'false' }}
-          version: ${{ inputs.version != '' && inputs.version || '' }}
-          config: ${{ inputs.config != '' && inputs.config || '' }}
-          fail_on: ${{ inputs.fail_on != '' && inputs.fail_on || '' }}
-          output_path: ${{ inputs.output_path != '' && inputs.output_path || './' }}
-          report_formats: ${{ inputs.report_formats != '' && inputs.report_formats || '' }}
+          disable_secrets_scan: ${{ inputs.disable_secrets_scan }}
+          upload_results: ${{ inputs.upload_results }}
+          version: ${{ inputs.version }}
+          config: ${{ inputs.config }}
+          fail_on: ${{ inputs.fail_on }}
+          output_path: ${{ inputs.output_path }}
+          report_formats: ${{ inputs.report_formats }}
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
       - name: Show scan results
         run: |
-          ls -l
+          cat *-scan-results.json

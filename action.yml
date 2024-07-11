@@ -70,12 +70,36 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: fcs-pull
+    - name: Pull FCS CLI Docker image
+      id: fcs-pull
       run: $GITHUB_ACTION_PATH/fcs-pull.sh
       shell: bash
+      env:
+        INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
+        INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
+        INPUT_VERSION: ${{ inputs.version }}
 
-    - id: fcs-scan
+    - name: Run FCS CLI tool
+      id: fcs-scan
       run: $GITHUB_ACTION_PATH/fcs-scan.sh
       shell: bash
       env:
         OUTPUT_FCS_IMAGE: ${{ steps.fcs-pull.outputs.FCS_IMAGE }}
+        INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
+        INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
+        INPUT_CATEGORIES: ${{ inputs.categories }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_DISABLE_SECRETS_SCAN: ${{ inputs.disable_secrets_scan }}
+        INPUT_EXCLUDE_CATEGORIES: ${{ inputs.exclude_categories }}
+        INPUT_EXCLUDE_PATHS: ${{ inputs.exclude_paths }}
+        INPUT_EXCLUDE_PLATFORMS: ${{ inputs.exclude_platforms }}
+        INPUT_EXCLUDE_SEVERITIES: ${{ inputs.exclude_severities }}
+        INPUT_FAIL_ON: ${{ inputs.fail_on }}
+        INPUT_OUTPUT_PATH: ${{ inputs.output_path }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_PLATFORMS: ${{ inputs.platforms }}
+        INPUT_PROJECT_OWNERS: ${{ inputs.project_owners }}
+        INPUT_REPORT_FORMATS: ${{ inputs.report_formats }}
+        INPUT_SEVERITIES: ${{ inputs.severities }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_UPLOAD_RESULTS: ${{ inputs.upload_results }}
