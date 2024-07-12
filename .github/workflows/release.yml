@@ -17,6 +17,7 @@ jobs:
         id: release
         with:
           release-type: simple
+          token: ${{ secrets.RELEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
       # The following steps are only executed if a release is created.
