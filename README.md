@@ -31,10 +31,10 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 ## Usage
 
 To use this action in your workflow, add the following step:
-
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1
+  uses: crowdstrike/fcs-action@v1.0.0
   with:
     falcon_client_id: 'abcdefghijk123456789'
     falcon_region: 'us-1'
@@ -42,7 +42,7 @@ To use this action in your workflow, add the following step:
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
-
+<!-- x-release-please-end -->
 ## Environment Variables
 
 | Variable | Description | Required | Default | Example/Allowed Values |
@@ -82,10 +82,10 @@ To use this action in your workflow, add the following step:
 ## Examples
 
 ### Basic scan of a local file
-
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1
+  uses: crowdstrike/fcs-action@v1.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -93,12 +93,12 @@ To use this action in your workflow, add the following step:
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
-
+<!-- x-release-please-end -->
 ### Upload SARIF report to GitHub Code scanning on non-zero exit code
-
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1
+  uses: crowdstrike/fcs-action@v1.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'eu-1'
@@ -114,12 +114,12 @@ To use this action in your workflow, add the following step:
     with:
       sarif_file: ./scan-results/*-scan-results.sarif
 ```
-
+<!-- x-release-please-end -->
 ### Scan with exclusions and severity filtering
-
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1
+  uses: crowdstrike/fcs-action@v1.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -130,7 +130,7 @@ To use this action in your workflow, add the following step:
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
-
+<!-- x-release-please-end -->
 ## Support
 
 This project is a community-driven, open source project designed to provide a simple way to run CrowdStrike Falcon Cloud Security (FCS) CLI in a GitHub Action.
