@@ -57,7 +57,7 @@ To use this action in your workflow, add the following step:
 | `falcon_region` | CrowdStrike API region | **Yes** | `us-1` | Allowed values: `us-1, us-2, eu-1, us-gov-1, us-gov-2` |
 | `version` | FCS CLI version to use | No | - | `0.39.0` |
 | `categories` | Include results for the specified categories, accepts a comma-separated list | No | - | `Access Control,Best Practices` |
-| `config` | Path to the scan configuration file | No | - | `./fcs-config.yaml` |
+| `config` | Path to the scan configuration file | No | - | `./fcs-config.json` |
 | `disable_secrets_scan` | Disable scanning of secrets and passwords in target files | No | `false` | Allowed values: `true, false` |
 | `exclude_categories` | Exclude results for the specified categories, accepts a comma-separated list | No | - | Allowed values: `Access Control, Availability, Backup, Best Practices, Build Process, Encryption, Insecure Configurations, Insecure Defaults, Networking and Firewall, Observability, Resource Management, Secret Management, Supply-Chain, Structure and Semantics` |
 | `exclude_paths` | Exclude paths from scan | No | - | `./sample-dir-to-omit/*,sample-file.tf` |
@@ -131,6 +131,43 @@ To use this action in your workflow, add the following step:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
 <!-- x-release-please-end -->
+---
+
+You can also use configuration files to customize the scan parameters. For more information, see the [FCS CLI documentation](https://falcon.crowdstrike.com/login/?unilogin=true&next=/documentation/page/e08ea90a/infrastructure-as-code-security#u253ccc1)
+
+### Run scan with configuration file
+<!-- x-release-please-start-version -->
+```yaml
+- name: Run FCS IaC Scan
+  uses: crowdstrike/fcs-action@v1.0.0
+  with:
+    falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+    falcon_region: 'us-1'
+    config: './fcs-config.json'
+  env:
+    FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+```
+<!-- x-release-please-end -->
+> Example configuration file: `./fcs-config.json`
+
+```json
+{
+    "path": "./scan-dir",
+    "fail-on": [
+        "high=1",
+        "medium=1",
+        "low=1",
+        "info=1"
+    ],
+    "output-path": "./results",
+    "report-formats": [
+        "json",
+        "sarif"
+    ],
+    "timeout": 300
+}
+```
+
 ## Support
 
 This project is a community-driven, open source project designed to provide a simple way to run CrowdStrike Falcon Cloud Security (FCS) CLI in a GitHub Action.
