@@ -1,0 +1,5 @@
+{
+    "path": "tests",
+    "output-path": "./",
+    "report-formats": ["json", "sarif"]
+}

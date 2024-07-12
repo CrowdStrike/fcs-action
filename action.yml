@@ -42,7 +42,7 @@ inputs:
     default: "./"
   path:
     description: 'Path to local file, local directory or git repo to scan (e.g. ./my-local-dir, git::<git repo>, sample-file.tf)'
-    required: true
+    required: false
   platforms:
     description: 'Include results for the specified platforms, accepts a comma-separated list (e.g Ansible,CloudFormation)'
     required: false

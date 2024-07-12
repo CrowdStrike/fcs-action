@@ -24,9 +24,32 @@ validate_bool() {
     esac
 }
 
-validate_path() {
-    local path=$1
+path_exists() {
+    local path="$1"
     [[ "$path" =~ ^git:: ]] || [[ -e "$path" ]] || die "Path/file does not exist: $path"
+}
+
+validate_path() {
+    # Check if INPUT_PATH or INPUT_CONFIG has been supplied.
+    local path="${INPUT_PATH:-}"
+    local config="${INPUT_CONFIG:-}"
+    if [[ -z "$path" && -z "$config" ]]; then
+        die "Either 'path' or 'config' input is required."
+    fi
+
+    # Path takes precedence over config. If path is supplied, validate it.
+    if [[ -n "$path" ]]; then
+        path_exists "$path"
+    else
+        # If config is supplied, verify "path": exists in the file and get the value and validate it.
+        if [[ -n "$config" ]]; then
+            local config_path
+            config_path=$(jq -r '.path' "$config")
+            [[ -n "$config_path" ]] || die "Invalid 'config' input. Missing 'path' key."
+            path_exists "$config_path"
+        fi
+    fi
+
 }
 
 validate_required_inputs() {
@@ -35,7 +58,6 @@ validate_required_inputs() {
         "INPUT_FALCON_CLIENT_ID"
         "FALCON_CLIENT_SECRET"
         "INPUT_FALCON_REGION"
-        "INPUT_PATH"
     )
 
     for input in "${required_inputs[@]}"; do
@@ -50,11 +72,8 @@ validate_required_inputs() {
 
 set_parameters() {
     local -a params=()
-    params=(
-        "--path ${INPUT_PATH}"
-    )
-
     local input_params=(
+        "PATH:path"
         "CATEGORIES:categories"
         "CONFIG:config"
         "EXCLUDE_CATEGORIES:exclude-categories"
@@ -117,6 +136,7 @@ execute_fcs_cli() {
 
 main() {
     validate_required_inputs
+    validate_path
     local args
     args=$(set_parameters)
     execute_fcs_cli "$args"

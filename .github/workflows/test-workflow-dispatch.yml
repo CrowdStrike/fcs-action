@@ -29,7 +29,7 @@ on:
         default: "./"
       path:
         description: 'Path to local file, local directory or git repo to scan (e.g. ./my-local-dir, git::<git repo>, sample-file.tf)'
-        required: true
+        required: false
       report_formats:
         description: 'Comma-separated list of formats in which reports are to be written (e.g. json,sarif)'
         required: false
