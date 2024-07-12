@@ -34,7 +34,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1.0.0
+  uses: crowdstrike/fcs-action@v1.0.1
   with:
     falcon_client_id: 'abcdefghijk123456789'
     falcon_region: 'us-1'
@@ -85,7 +85,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1.0.0
+  uses: crowdstrike/fcs-action@v1.0.1
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -98,7 +98,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1.0.0
+  uses: crowdstrike/fcs-action@v1.0.1
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'eu-1'
@@ -119,7 +119,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1.0.0
+  uses: crowdstrike/fcs-action@v1.0.1
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -139,7 +139,7 @@ You can also use configuration files to customize the scan parameters. For more 
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v1.0.0
+  uses: crowdstrike/fcs-action@v1.0.1
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'

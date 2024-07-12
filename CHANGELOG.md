@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/crowdstrike/fcs-action/compare/v1.0.0...v1.0.1) (2024-07-12)
+
+
+### Bug Fixes
+
+* allow path and config to coexist ([#7](https://github.com/crowdstrike/fcs-action/issues/7)) ([3147eaf](https://github.com/crowdstrike/fcs-action/commit/3147eaf8c8953f4521d677d9fddcabcbdfa42b02))
+
 ## 1.0.0 (2024-07-12)
 
 
