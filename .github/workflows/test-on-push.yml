@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test FCS CLI IaC Scan
-        uses: ./
+        uses: crowdstrike/fcs-action@v1.0.1
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
