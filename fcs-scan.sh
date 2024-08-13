@@ -86,7 +86,7 @@ validate_required_inputs() {
 
     for input in "${required_inputs[@]}"; do
         if [[ -z "${!input:-}" ]]; then
-            log "Missing required input/env variable '${input#INPUT_}'"
+            log "Missing required input/env variable '${input#INPUT_}'. Please see the actions's documentation for more details." "ERROR"
             invalid=true
         fi
     done
