@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/CrowdStrike/fcs-action/compare/v1.0.1...v1.0.2) (2024-08-13)
+
+
+### Bug Fixes
+
+* fixing sarif informationuri issue temporarily ([#9](https://github.com/CrowdStrike/fcs-action/issues/9)) ([75e518f](https://github.com/CrowdStrike/fcs-action/commit/75e518ff7374d8eab95908b0a3811ac28806d049))
+
 ## [1.0.1](https://github.com/crowdstrike/fcs-action/compare/v1.0.0...v1.0.1) (2024-07-12)
 
 
