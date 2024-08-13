@@ -5,6 +5,30 @@
 readonly FCS_CLI_BIN="/opt/crowdstrike/bin/fcs"
 readonly FCS_IMAGE="${OUTPUT_FCS_IMAGE:-}"
 
+# TODO: Remove these functions when upstream fix is in place
+check_sarif() {
+    local report_formats="${INPUT_REPORT_FORMATS:-}"
+    # If sarif is in report_formats, set variable
+    if [[ -n "${report_formats}" ]]; then
+        if echo "${report_formats}" | grep -qw "sarif"; then
+            echo "true"
+        fi
+    fi
+}
+
+fix_sarif() {
+    local file output_path
+    output_path="${INPUT_OUTPUT_PATH}"
+    file=$(find "$output_path" -name "*-scan-results.sarif")
+    if [[ -n "$file" ]]; then
+        jq 'if .runs[0].tool.driver.informationUri == "" then
+            .runs[0].tool.driver.informationUri = "https://crowdstrike.com"
+            else
+                .
+            end' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    fi
+}
+
 log() {
     local log_level=${2:-INFO}
     echo "[$(date +'%Y-%m-%dT%H:%M:%S')] $log_level: $1" >&2
@@ -62,7 +86,7 @@ validate_required_inputs() {
 
     for input in "${required_inputs[@]}"; do
         if [[ -z "${!input:-}" ]]; then
-            log "Missing required input/env variable '${input#INPUT_}'"
+            log "Missing required input/env variable '${input#INPUT_}'. Please see the actions's documentation for more details." "ERROR"
             invalid=true
         fi
     done
@@ -140,6 +164,12 @@ main() {
     local args
     args=$(set_parameters)
     execute_fcs_cli "$args"
+    # TODO: Remove this when upstream fix is in place
+    # if sarif format has been requested, then fix informationUri
+    IS_SARIF=$(check_sarif)
+    if [[ "${IS_SARIF}" == "true" ]]; then
+        fix_sarif
+    fi
 }
 
 main

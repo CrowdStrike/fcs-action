@@ -5,6 +5,12 @@ on: [push]
 jobs:
   fcs-scan:
     runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -15,9 +21,15 @@ jobs:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           path: tests/
+          report_formats: sarif
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
       - name: Show scan results
         run: |
-          cat *-scan-results.json
+          cat *-scan-results.sarif
+
+      - name: Upload sarif file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "./"
