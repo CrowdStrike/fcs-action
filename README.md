@@ -99,6 +99,7 @@ To use this action in your workflow, add the following step:
 ```yaml
 - name: Run FCS IaC Scan
   uses: crowdstrike/fcs-action@v1.0.2
+  id: fcs
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'eu-1'
