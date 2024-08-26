@@ -1,5 +1,8 @@
 name: 'CrowdStrike FCS CLI GitHub Action'
 description: 'Run FCS IaC scan'
+branding:
+  icon: 'shield'
+  color: 'red'
 inputs:
   falcon_client_id:
     description: 'CrowdStrike API Client ID for authentication'
