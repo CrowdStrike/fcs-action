@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3](https://github.com/crowdstrike/fcs-action/compare/v1.0.2...v1.0.3) (2024-08-26)
+
+
+### Miscellaneous
+
+* add branding for actions.yml ([#14](https://github.com/crowdstrike/fcs-action/issues/14)) ([ec5cf44](https://github.com/crowdstrike/fcs-action/commit/ec5cf444a9e495d9b3637b93272bbeb424685574))
+* release 1.0.3 ([223d540](https://github.com/crowdstrike/fcs-action/commit/223d540d93b96cba622c4fbb3d55743f7b1d4ead))
+
 ## [1.0.2](https://github.com/CrowdStrike/fcs-action/compare/v1.0.1...v1.0.2) (2024-08-13)
 
 
