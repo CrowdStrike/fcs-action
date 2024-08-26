@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.0.4](https://github.com/crowdstrike/fcs-action/compare/v1.0.3...v1.0.4) (2024-08-26)
+
 ## [1.0.3](https://github.com/crowdstrike/fcs-action/compare/v1.0.2...v1.0.3) (2024-08-26)
 
 
