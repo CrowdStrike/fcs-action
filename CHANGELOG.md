@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/crowdstrike/fcs-action/compare/v1.0.4...v1.0.5) (2024-08-26)
+
+
+### Miscellaneous
+
+* release 1.0.5 ([#17](https://github.com/crowdstrike/fcs-action/issues/17)) ([62fdc91](https://github.com/crowdstrike/fcs-action/commit/62fdc91bfb6a3291b338ffbe7a7aba4ca6793002))
+
 ## [1.0.4](https://github.com/crowdstrike/fcs-action/compare/v1.0.3...v1.0.4) (2024-08-26)
 
 ## [1.0.3](https://github.com/crowdstrike/fcs-action/compare/v1.0.2...v1.0.3) (2024-08-26)
