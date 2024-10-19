@@ -87,7 +87,7 @@ runs:
       run: $GITHUB_ACTION_PATH/fcs-scan.sh
       shell: bash
       env:
-        OUTPUT_FCS_IMAGE: ${{ steps.fcs-pull.outputs.FCS_IMAGE }}
+        OUTPUT_FCS_BIN: ${{ steps.fcs-pull.outputs.FCS_BIN }}
         INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
         INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
         INPUT_CATEGORIES: ${{ inputs.categories }}
