@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/crowdstrike/fcs-action/compare/v1.0.5...v1.0.6) (2024-10-19)
+
+
+### Bug Fixes
+
+* use bin from container to fix permission issues ([#21](https://github.com/crowdstrike/fcs-action/issues/21)) ([af3c6c1](https://github.com/crowdstrike/fcs-action/commit/af3c6c1521fe352c1289cdced46211d9be5eee89))
+
 ## [1.0.5](https://github.com/crowdstrike/fcs-action/compare/v1.0.4...v1.0.5) (2024-08-26)
 
 
