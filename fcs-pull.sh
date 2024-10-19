@@ -38,4 +38,4 @@ if [ ! -f $FCS_BIN_PATH/fcs ]; then
 fi
 
 # Set the bin path as an output
-echo "::set-output name=FCS_BIN::$FCS_BIN_PATH/fcs"
+echo "FCS_BIN=$FCS_BIN_PATH/fcs" >> $GITHUB_OUTPUT
