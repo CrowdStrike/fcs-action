@@ -24,5 +24,18 @@ if [ -z "$image_name" ]; then
     exit 1
 fi
 
-# Set the image name as an output for the next step to use
-echo "FCS_IMAGE=$image_name" >> $GITHUB_OUTPUT
+# TBD: For the container image, let's extract and copy the binary
+FCS_BIN_PATH=/opt/crowdstrike/bin
+# Make sure the directory exists
+mkdir -p $FCS_BIN_PATH
+id=$(docker create "$image_name")
+docker cp $id:$FCS_BIN_PATH/fcs $FCS_BIN_PATH
+
+# Ensure the binary exists
+if [ ! -f $FCS_BIN_PATH/fcs ]; then
+    echo "Failed to copy the FCS binary."
+    exit 1
+fi
+
+# Set the bin path as an output
+echo "FCS_BIN=$FCS_BIN_PATH/fcs" >> $GITHUB_OUTPUT

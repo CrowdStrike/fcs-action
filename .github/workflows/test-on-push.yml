@@ -1,9 +1,17 @@
 name: Test Action (push)
 
-on: [push]
+on:
+  push:
+  pull_request_target:
+    types: [labeled]
 
 jobs:
   fcs-scan:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
     permissions:
       # required for all workflows
@@ -15,21 +23,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create scan results directory
+        run: mkdir scan-results
+
       - name: Test FCS CLI IaC Scan
         uses: ./
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           path: tests/
+          output_path: scan-results/
           report_formats: sarif
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
       - name: Show scan results
         run: |
-          cat *-scan-results.sarif
+          cat scan-results/*.sarif
 
       - name: Upload sarif file
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: "./"
+          sarif_file: "./scan-results"

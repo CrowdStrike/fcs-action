@@ -2,8 +2,7 @@
 # This script is used to execute the FCS CLI tool with the provided arguments.
 # Current context is executing the FCS CLI container.
 
-readonly FCS_CLI_BIN="/opt/crowdstrike/bin/fcs"
-readonly FCS_IMAGE="${OUTPUT_FCS_IMAGE:-}"
+readonly FCS_CLI_BIN="${OUTPUT_FCS_BIN:-}"
 
 # TODO: Remove these functions when upstream fix is in place
 check_sarif() {
@@ -142,17 +141,11 @@ set_parameters() {
 
 execute_fcs_cli() {
     local args="$1"
-    local fcs_image="${FCS_IMAGE}"
-    [[ -n "$fcs_image" ]] || die "OUTPUT_FCS_IMAGE is not set. Ensure the FCS CLI container image was pulled successfully."
 
-    setfacl -m u:999:rwx "$GITHUB_WORKSPACE" || die "Failed to set permissions for container user."
     cd "$GITHUB_WORKSPACE" || die "Failed to change directory to $GITHUB_WORKSPACE"
 
-    local docker_command
-    docker_command="docker run --rm --platform linux/amd64 -v $(pwd):/workdir -w /workdir --entrypoint $FCS_CLI_BIN $fcs_image"
-
     log "Executing FCS CLI tool with the following arguments: $args"
-    $docker_command iac scan $args
+    $FCS_CLI_BIN iac scan $args
     local exit_code=$?
 
     echo "exit-code=$exit_code" >> "$GITHUB_OUTPUT"
