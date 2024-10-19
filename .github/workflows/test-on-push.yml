@@ -1,9 +1,17 @@
 name: Test Action (push)
 
-on: [push]
+on:
+  push:
+  pull_request_target:
+    types: [labeled]
 
 jobs:
   fcs-scan:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
     permissions:
       # required for all workflows
