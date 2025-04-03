@@ -42,9 +42,6 @@ jobs:
   fcs-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Validate input path
         run: |
           # Block path traversal patterns and absolute paths
@@ -52,6 +49,9 @@ jobs:
             echo "Security error: Path must not contain '..' (directory traversal) or start with '/' (absolute path)"
             exit 1
           fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Test FCS CLI IaC Scan
         uses: ./
