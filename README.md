@@ -45,11 +45,18 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-end -->
 
 > [!IMPORTANT]
-> **FCS CLI Version Differences**
+> **Understanding Version Differences**
 >
-> The FCS CLI tool has significant changes between versions. If no version is specified, the latest version (currently v1.0.0) is used by default.
+> There are two different version numbers to be aware of:
 >
-> Key changes in v1.0.0:
+> 1. **GitHub Action Version** (`crowdstrike/fcs-action@v1.0.6`) - This is the version of the GitHub Action wrapper.
+> 2. **FCS CLI Version** (specified with the `version` parameter) - This is the version of the underlying scanning tool.
+>
+> **FCS CLI Version Changes**
+>
+> The underlying FCS CLI tool has significant changes between versions. If no `version` parameter is specified, the latest FCS CLI version (currently v1.0.0) is used by default.
+>
+> Key changes in FCS CLI v1.0.0:
 >
 > - **Severity levels**: Changed from `high|medium|low|info` to `critical|high|medium|informational`
 > - **Default fail-on values**: Changed from `high=1,medium=1,low=1,info=1` to `critical=1,high=1,medium=1,informational=1`
@@ -57,7 +64,7 @@ To use this action in your workflow, add the following step:
 > - **Default timeout**: Increased from 300 seconds to 500 seconds
 > - **Added new parameter**: `policy_rule` for specifying IaC cloud scanning policy-rule
 >
-> To use an older CLI version, specify the `version` parameter (e.g., `version: '0.47.1'`).
+> To use an older FCS CLI version, specify the `version` parameter (e.g., `version: '0.47.1'`).
 
 ## Environment Variables
 
@@ -71,7 +78,7 @@ To use this action in your workflow, add the following step:
 |-------|-------------|----------|---------|---------|
 | `falcon_client_id` | CrowdStrike API Client ID for authentication | **Yes** | - | `${{ vars.FALCON_CLIENT_ID }}` |
 | `falcon_region` | CrowdStrike API region | **Yes** | `us-1` | Allowed values: `us-1, us-2, eu-1, us-gov-1, us-gov-2` |
-| `version` | FCS CLI version to use | No | - | `0.47.1` |
+| `version` | **FCS CLI tool** version to use (_not the GitHub Action version_) | No | - | `0.47.1` |
 | `categories` | Include results for the specified categories, accepts a comma-separated list | No | - | `Access Control,Best Practices` |
 | `config` | Path to the scan configuration file | No | - | `./fcs-config.json` |
 | `disable_secrets_scan` | Disable scanning of secrets and passwords in target files | No | `false` | Allowed values: `true, false` |
@@ -83,7 +90,7 @@ To use this action in your workflow, add the following step:
 | `output_path` | Path to save the scan results | No | `./` | `./scan-results` |
 | `path` | Path to local file, directory or git repo to scan | No | - | `./my-local-dir, git::<git repo>, sample-file.tf` |
 | `platforms` | Include results for the specified platforms, accepts a comma-separated list | No | - | FCS CLI v1.0.0+: `Ansible, AzureResourceManager, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform`<br>FCS CLI <v1.0.0: Also includes `Buildah, Knative` |
-| `policy_rule` | IaC cloud scanning policy-rule (FCS CLI v1.0.0+ only) | No | `local` | `local`, `default-iac-alert-rule` |
+| `policy_rule` | IaC cloud scanning policy-rule (_FCS CLI v1.0.0+ only_) | No | `local` | `local`, `default-iac-alert-rule` |
 | `project_owners` | Comma-separated list of project owners to notify (max 5) | No | - | `john@example.com,jane@example.com` |
 | `report_formats` | Formats in which reports are to be written, accepts a comma-separated list | No | `json` | Allowed values: `json, csv, junit, sarif` |
 | `severities` | Include results for the specified severities, accepts a comma-separated list | No | - | FCS CLI v1.0.0+: `critical, high, medium, informational`<br>FCS CLI <v1.0.0: `high, medium, low, info` |
@@ -120,7 +127,7 @@ To use this action in your workflow, add the following step:
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
-    version: '0.47.1'  # Specifying an older FCS CLI version
+    version: '0.47.1'  # FCS CLI tool version
     path: './kubernetes'
     severities: 'medium,low'  # Using severity levels from older FCS CLI versions
   env:
@@ -136,6 +143,7 @@ To use this action in your workflow, add the following step:
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
+    # No version specified, will use latest FCS CLI tool version (v1.0.0)
     path: './kubernetes'
     severities: 'critical,high,medium'  # Using severity levels from FCS CLI v1.0.0+
   env:
@@ -151,8 +159,9 @@ To use this action in your workflow, add the following step:
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
+    # No version specified, will use latest FCS CLI tool version (v1.0.0)
     path: './kubernetes'
-    policy_rule: 'default-iac-alert-rule'  # New parameter in v1.0.0+
+    policy_rule: 'default-iac-alert-rule'  # Parameter only available in FCS CLI v1.0.0+
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
@@ -233,6 +242,9 @@ You can also use configuration files to customize the scan parameters. For more 
     "timeout": 300
 }
 ```
+
+> [!NOTE]
+> If you're using a configuration file with FCS CLI v1.0.0+, make sure the severity levels in your configuration match the new format (`critical|high|medium|informational` instead of `high|medium|low|info`).
 
 ## Support
 
