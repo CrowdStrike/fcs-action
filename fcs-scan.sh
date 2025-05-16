@@ -106,6 +106,7 @@ set_parameters() {
         "FAIL_ON:fail-on"
         "OUTPUT_PATH:output-path"
         "PLATFORMS:platforms"
+        "POLICY_RULE:policy-rule"
         "PROJECT_OWNERS:project-owners"
         "REPORT_FORMATS:report-formats"
         "SEVERITIES:severities"

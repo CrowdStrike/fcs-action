@@ -28,6 +28,13 @@ This action relies on the environment variable `FALCON_CLIENT_SECRET` to authent
 
 Create a GitHub secret in your repository to store the CrowdStrike API Client secret created from the step above. For more information, see [Creating secrets for a repository](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository).
 
+### FCS Action Support for FCS CLI Versions
+
+| **FCS CLI Version** | **FCS Action Version** |
+| ------------------- | ---------------------- |
+| **`>= 1.0.0`**      | **`>= 1.1.0`**         |
+| **`< 1.0.0`**       | **`< 1.1.0`**          |
+
 ## Usage
 
 To use this action in your workflow, add the following step:
@@ -43,40 +50,42 @@ To use this action in your workflow, add the following step:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
 <!-- x-release-please-end -->
+
 ## Environment Variables
 
-| Variable | Description | Required | Default | Example/Allowed Values |
-|----------|-------------|----------|---------|---------|
-| `FALCON_CLIENT_SECRET` | CrowdStrike API Client Secret for authentication | **Yes** | - | `${{ secrets.FALCON_CLIENT_SECRET }}` |
+| Variable               | Description                                      | Required | Default | Example/Allowed Values                |
+| ---------------------- | ------------------------------------------------ | -------- | ------- | ------------------------------------- |
+| `FALCON_CLIENT_SECRET` | CrowdStrike API Client Secret for authentication | **Yes**  | -       | `${{ secrets.FALCON_CLIENT_SECRET }}` |
 
 ## Inputs
 
-| Input | Description | Required | Default | Example/Allowed Values |
-|-------|-------------|----------|---------|---------|
-| `falcon_client_id` | CrowdStrike API Client ID for authentication | **Yes** | - | `${{ vars.FALCON_CLIENT_ID }}` |
-| `falcon_region` | CrowdStrike API region | **Yes** | `us-1` | Allowed values: `us-1, us-2, eu-1, us-gov-1, us-gov-2` |
-| `version` | FCS CLI version to use | No | - | `0.39.0` |
-| `categories` | Include results for the specified categories, accepts a comma-separated list | No | - | `Access Control,Best Practices` |
-| `config` | Path to the scan configuration file | No | - | `./fcs-config.json` |
-| `disable_secrets_scan` | Disable scanning of secrets and passwords in target files | No | `false` | Allowed values: `true, false` |
-| `exclude_categories` | Exclude results for the specified categories, accepts a comma-separated list | No | - | Allowed values: `Access Control, Availability, Backup, Best Practices, Build Process, Encryption, Insecure Configurations, Insecure Defaults, Networking and Firewall, Observability, Resource Management, Secret Management, Supply-Chain, Structure and Semantics` |
-| `exclude_paths` | Exclude paths from scan | No | - | `./sample-dir-to-omit/*,sample-file.tf` |
-| `exclude_platforms` | Exclude results for the specified platforms, accepts a comma-separated list | No | - | Allowed values: `Ansible, AzureResourceManager, Buildah, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Knative, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform` |
-| `exclude_severities` | Exclude results for the specified severities, accepts a comma-separated list | No | - | Allowed values: `high, medium, low, info` |
-| `fail_on` | Which kind of results should return a non-zero exit code, accepts a comma-separated list of `<severity>=<value>` | No | `high=1,medium=1,low=1,info=1` | `"high=2,medium=50"` |
-| `output_path` | Path to save the scan results | No | `./` | `./scan-results` |
-| `path` | Path to local file, directory or git repo to scan | No | - | `./my-local-dir, git::<git repo>, sample-file.tf` |
-| `platforms` | Include results for the specified platforms, accepts a comma-separated list | No | - | Allowed values: `Ansible, AzureResourceManager, Buildah, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Knative, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform` |
-| `project_owners` | Comma-separated list of project owners to notify (max 5) | No | - | `john@example.com,jane@example.com` |
-| `report_formats` | Formats in which reports are to be written, accepts a comma-separated list | No | `json` | Allowed values: `json, csv, junit, sarif` |
-| `severities` | Include results for the specified severities, accepts a comma-separated list | No | - | Allowed values: `high, medium, low, info` |
-| `timeout` | Timeout for the scan in seconds | No | `300` | `900` |
-| `upload_results` | Upload scan results to the CrowdStrike Falcon Console | No | `false` | `true` |
+| Input                  | Description                                                                                                      | Required | Default                                      | Example/Allowed Values                                                                                                                                                                                                                                               |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `falcon_client_id`     | CrowdStrike API Client ID for authentication                                                                     | **Yes**  | -                                            | `${{ vars.FALCON_CLIENT_ID }}`                                                                                                                                                                                                                                       |
+| `falcon_region`        | CrowdStrike API region                                                                                           | **Yes**  | `us-1`                                       | Allowed values: `us-1, us-2, eu-1, us-gov-1, us-gov-2`                                                                                                                                                                                                               |
+| `version`              | **FCS CLI tool** version to use (_not the GitHub Action version_)                                                | No       | -                                            | `1.0.0`                                                                                                                                                                                                                                                             |
+| `categories`           | Include results for the specified categories, accepts a comma-separated list                                     | No       | -                                            | `Access Control,Best Practices`                                                                                                                                                                                                                                      |
+| `config`               | Path to the scan configuration file                                                                              | No       | -                                            | `./fcs-config.json`                                                                                                                                                                                                                                                  |
+| `disable_secrets_scan` | Disable scanning of secrets and passwords in target files                                                        | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
+| `exclude_categories`   | Exclude results for the specified categories, accepts a comma-separated list                                     | No       | -                                            | Allowed values: `Access Control, Availability, Backup, Best Practices, Build Process, Encryption, Insecure Configurations, Insecure Defaults, Networking and Firewall, Observability, Resource Management, Secret Management, Supply-Chain, Structure and Semantics` |
+| `exclude_paths`        | Exclude paths from scan                                                                                          | No       | -                                            | `./sample-dir-to-omit/*,sample-file.tf`                                                                                                                                                                                                                              |
+| `exclude_platforms`    | Exclude results for the specified platforms, accepts a comma-separated list                                      | No       | -                                            | `Ansible, AzureResourceManager, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform`                                                                                                |
+| `exclude_severities`   | Exclude results for the specified severities, accepts a comma-separated list                                     | No       | -                                            | Allowed values: `critical, high, medium, informational`                                                                                                                                                                                                                              |
+| `fail_on`              | Which kind of results should return a non-zero exit code, accepts a comma-separated list of `<severity>=<value>` | No       | `critical=1,high=1,medium=1,informational=1` |                                                                                                                                                                                                                                                                      |
+| `output_path`          | Path to save the scan results                                                                                    | No       | `./`                                         | `./scan-results`                                                                                                                                                                                                                                                     |
+| `path`                 | Path to local file, directory or git repo to scan                                                                | No       | -                                            | `./my-local-dir, git::<git repo>, sample-file.tf`                                                                                                                                                                                                                    |
+| `platforms`            | Include results for the specified platforms, accepts a comma-separated list                                      | No       | -                                            | `Ansible, AzureResourceManager, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform`                                                                                                |
+| `policy_rule`          | IaC cloud scanning policy-rule                                                                                   | No       | `local`                                      | `local`, `default-iac-alert-rule`                                                                                                                                                                                                                                    |
+| `project_owners`       | Comma-separated list of project owners to notify (max 5)                                                         | No       | -                                            | `john@example.com,jane@example.com`                                                                                                                                                                                                                                  |
+| `report_formats`       | Formats in which reports are to be written, accepts a comma-separated list                                       | No       | `json`                                       | Allowed values: `json, csv, junit, sarif`                                                                                                                                                                                                                            |
+| `severities`           | Include results for the specified severities, accepts a comma-separated list                                     | No       | -                                            | Allowed values: `critical, high, medium, informational`                                                                                                                                                                                                                              |
+| `timeout`              | Timeout for the scan in seconds                                                                                  | No       | `500`                                        | `900`                                                                                                                                                                                                                                                                |
+| `upload_results`       | Upload scan results to the CrowdStrike Falcon Console                                                            | No       | `false`                                      | `true`                                                                                                                                                                                                                                                               |
 
 ## Outputs
 
-| Output | Description |
-|--------|-------------|
+| Output      | Description                   |
+| ----------- | ----------------------------- |
 | `exit-code` | Exit code of the FCS CLI tool |
 
 ## Examples
@@ -94,6 +103,37 @@ To use this action in your workflow, add the following step:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
 <!-- x-release-please-end -->
+
+### Specifying severity levels
+<!-- x-release-please-start-version -->
+```yaml
+- name: Run FCS IaC Scan
+  uses: crowdstrike/fcs-action@v1.0.6
+  with:
+    falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+    falcon_region: 'us-2'
+    path: './kubernetes'
+    severities: 'critical,high,medium'
+  env:
+    FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+```
+<!-- x-release-please-end -->
+
+### Using the policy rule parameter
+<!-- x-release-please-start-version -->
+```yaml
+- name: Run FCS IaC Scan
+  uses: crowdstrike/fcs-action@v1.0.6
+  with:
+    falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+    falcon_region: 'us-2'
+    path: './kubernetes'
+    policy_rule: 'default-iac-alert-rule'
+  env:
+    FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+```
+<!-- x-release-please-end -->
+
 ### Upload SARIF report to GitHub Code scanning on non-zero exit code
 <!-- x-release-please-start-version -->
 ```yaml
@@ -116,6 +156,7 @@ To use this action in your workflow, add the following step:
       sarif_file: ./scan-results/*-scan-results.sarif
 ```
 <!-- x-release-please-end -->
+
 ### Scan with exclusions and severity filtering
 <!-- x-release-please-start-version -->
 ```yaml
@@ -155,10 +196,10 @@ You can also use configuration files to customize the scan parameters. For more 
 {
     "path": "./scan-dir",
     "fail-on": [
+        "critical=1",
         "high=1",
         "medium=1",
-        "low=1",
-        "info=1"
+        "informational=1"
     ],
     "output-path": "./results",
     "report-formats": [

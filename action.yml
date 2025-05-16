@@ -49,6 +49,10 @@ inputs:
   platforms:
     description: 'Include results for the specified platforms, accepts a comma-separated list (e.g Ansible,CloudFormation)'
     required: false
+  policy_rule:
+    description: 'IaC cloud scanning policy-rule. Use "local" for local rules, "default-iac-alert-rule" for cloud-based rules'
+    required: false
+    default: 'local'
   project_owners:
     description: 'Comma-separated list of project owners to notify (max 5)'
     required: false
@@ -101,6 +105,7 @@ runs:
         INPUT_OUTPUT_PATH: ${{ inputs.output_path }}
         INPUT_PATH: ${{ inputs.path }}
         INPUT_PLATFORMS: ${{ inputs.platforms }}
+        INPUT_POLICY_RULE: ${{ inputs.policy_rule }}
         INPUT_PROJECT_OWNERS: ${{ inputs.project_owners }}
         INPUT_REPORT_FORMATS: ${{ inputs.report_formats }}
         INPUT_SEVERITIES: ${{ inputs.severities }}
