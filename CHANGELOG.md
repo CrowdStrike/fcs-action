@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/CrowdStrike/fcs-action/compare/v1.0.6...v1.1.0) (2025-05-16)
+
+
+### Features
+
+* add new policy_rule option and doc changes for newer cli version ([#26](https://github.com/CrowdStrike/fcs-action/issues/26)) ([64cf4ad](https://github.com/CrowdStrike/fcs-action/commit/64cf4ad954614cf7b674ef51ac9dcdc215c4aea9))
+
 ## [1.0.6](https://github.com/crowdstrike/fcs-action/compare/v1.0.5...v1.0.6) (2024-10-19)
 
 
