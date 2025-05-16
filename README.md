@@ -104,7 +104,7 @@ To use this action in your workflow, add the following step:
 ```
 <!-- x-release-please-end -->
 
-### Using latest FCS CLI version with severity levels
+### Specifying severity levels
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
@@ -196,10 +196,10 @@ You can also use configuration files to customize the scan parameters. For more 
 {
     "path": "./scan-dir",
     "fail-on": [
+        "critical=1",
         "high=1",
         "medium=1",
-        "low=1",
-        "info=1"
+        "informational=1"
     ],
     "output-path": "./results",
     "report-formats": [
@@ -209,9 +209,6 @@ You can also use configuration files to customize the scan parameters. For more 
     "timeout": 300
 }
 ```
-
-> [!NOTE]
-> If you're using a configuration file with FCS CLI v1.0.0+, make sure the severity levels in your configuration match the new format (`critical|high|medium|informational` instead of `high|medium|low|info`).
 
 ## Support
 
