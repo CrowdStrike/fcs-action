@@ -150,10 +150,10 @@ To use this action in your workflow, add the following step:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
 - name: Upload SARIF report to GitHub Code scanning
-    uses: github/codeql-action/upload-sarif@v2
+    uses: github/codeql-action/upload-sarif@v3
     if: steps.fcs.outputs.exit-code != 0
     with:
-      sarif_file: ./scan-results/*-scan-results.sarif
+      sarif_file: ./scan-results
 ```
 <!-- x-release-please-end -->
 
