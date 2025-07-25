@@ -1,5 +1,5 @@
 name: 'CrowdStrike FCS CLI GitHub Action'
-description: 'Run FCS IaC scan'
+description: 'Run FCS IaC or Image scan'
 branding:
   icon: 'shield'
   color: 'red'
@@ -14,6 +14,10 @@ inputs:
   version:
     description: 'FCS CLI version to use'
     required: false
+  scan_type:
+    description: 'Type of scan to perform: iac or image'
+    required: false
+    default: 'iac'
   categories:
     description: 'Include results for the specified categories'
     required: false
@@ -69,6 +73,79 @@ inputs:
     description: 'Upload scan results to the CrowdStrike Falcon Console'
     required: false
     default: 'false'
+  # Image scanning specific inputs
+  image:
+    description: 'Container image to scan (e.g., nginx:latest, docker://image:tag)'
+    required: false
+  source_override:
+    description: 'Override automatic source detection (registry, daemon, tar)'
+    required: false
+  socket:
+    description: 'Custom socket path for container engine (e.g., unix:///var/run/docker.sock)'
+    required: false
+  username:
+    description: 'Registry username for authentication'
+    required: false
+  password:
+    description: 'Registry password for authentication'
+    required: false
+  registry_url_override:
+    description: 'Override the registry URL'
+    required: false
+  registry_type:
+    description: 'Registry type (e.g., dockerhub, ecr, gcr, artifactory)'
+    required: false
+  registry_port:
+    description: 'Registry port number'
+    required: false
+  platform:
+    description: 'Target platform for multi-platform images in OS/ARCH[/VARIANT] format (e.g., linux/amd64)'
+    required: false
+  vulnerability_only:
+    description: 'Image scan for vulnerabilities only'
+    required: false
+    default: 'false'
+  sbom_only:
+    description: 'Only generate Image SBOM in CycloneDX (json) format'
+    required: false
+    default: 'false'
+  minimum_score:
+    description: 'Only show vulnerabilities with CVSS score at or above this threshold (0.0-10.0)'
+    required: false
+  minimum_severity:
+    description: 'Only show vulnerabilities with this severity or higher (low, medium, high, critical)'
+    required: false
+  minimum_exprt:
+    description: 'Only show vulnerabilities with this ExPRT rating or higher (low, medium, high, critical)'
+    required: false
+  exclude_vulnerabilities:
+    description: 'Comma-separated list of vulnerability IDs to exclude'
+    required: false
+  vuln_fixable_only:
+    description: 'Exclude vulnerabilities without a fix'
+    required: false
+    default: 'false'
+  report_sort_by:
+    description: 'Sort report by vulnerability, ExPRT rating, severity or score in ascending or descending order'
+    required: false
+  show_full_description:
+    description: 'Show full vulnerability descriptions without truncation'
+    required: false
+    default: 'false'
+  show_full_detection_details:
+    description: 'Show full detection details without truncation'
+    required: false
+    default: 'false'
+  minimum_detection_severity:
+    description: 'Only show detections with this severity or higher (low, medium, high, critical)'
+    required: false
+  no_color:
+    description: 'Disable colored output for severity levels and ExPRT ratings'
+    required: false
+    default: 'false'
+  temp_dir:
+    description: 'Custom directory for temporary files'
+    required: false
 outputs:
   exit-code:
     description: 'Exit code of the FCS CLI tool'
@@ -94,6 +171,7 @@ runs:
         OUTPUT_FCS_BIN: ${{ steps.fcs-pull.outputs.FCS_BIN }}
         INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
         INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
+        INPUT_SCAN_TYPE: ${{ inputs.scan_type }}
         INPUT_CATEGORIES: ${{ inputs.categories }}
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_DISABLE_SECRETS_SCAN: ${{ inputs.disable_secrets_scan }}
@@ -111,3 +189,26 @@ runs:
         INPUT_SEVERITIES: ${{ inputs.severities }}
         INPUT_TIMEOUT: ${{ inputs.timeout }}
         INPUT_UPLOAD_RESULTS: ${{ inputs.upload_results }}
+        # Image scanning environment variables
+        INPUT_IMAGE: ${{ inputs.image }}
+        INPUT_SOURCE_OVERRIDE: ${{ inputs.source_override }}
+        INPUT_SOCKET: ${{ inputs.socket }}
+        INPUT_USERNAME: ${{ inputs.username }}
+        INPUT_PASSWORD: ${{ inputs.password }}
+        INPUT_REGISTRY_URL_OVERRIDE: ${{ inputs.registry_url_override }}
+        INPUT_REGISTRY_TYPE: ${{ inputs.registry_type }}
+        INPUT_REGISTRY_PORT: ${{ inputs.registry_port }}
+        INPUT_PLATFORM: ${{ inputs.platform }}
+        INPUT_VULNERABILITY_ONLY: ${{ inputs.vulnerability_only }}
+        INPUT_SBOM_ONLY: ${{ inputs.sbom_only }}
+        INPUT_MINIMUM_SCORE: ${{ inputs.minimum_score }}
+        INPUT_MINIMUM_SEVERITY: ${{ inputs.minimum_severity }}
+        INPUT_MINIMUM_EXPRT: ${{ inputs.minimum_exprt }}
+        INPUT_EXCLUDE_VULNERABILITIES: ${{ inputs.exclude_vulnerabilities }}
+        INPUT_VULN_FIXABLE_ONLY: ${{ inputs.vuln_fixable_only }}
+        INPUT_REPORT_SORT_BY: ${{ inputs.report_sort_by }}
+        INPUT_SHOW_FULL_DESCRIPTION: ${{ inputs.show_full_description }}
+        INPUT_SHOW_FULL_DETECTION_DETAILS: ${{ inputs.show_full_detection_details }}
+        INPUT_MINIMUM_DETECTION_SEVERITY: ${{ inputs.minimum_detection_severity }}
+        INPUT_NO_COLOR: ${{ inputs.no_color }}
+        INPUT_TEMP_DIR: ${{ inputs.temp_dir }}

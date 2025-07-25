@@ -1,0 +1,55 @@
+name: Quick Test
+on:
+  workflow_dispatch:
+  
+jobs:
+  test-basic-image-scan:
+    runs-on: ubuntu-latest
+    name: Quick Basic Test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test basic image scan
+        uses: ./
+        with:
+          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
+          falcon_region: ${{ secrets.FALCON_REGION }}
+          scan_type: image
+          image: nginx:latest
+          output_path: ./test-results/
+          report_formats: json
+          minimum_severity: medium
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quick-test-results
+          path: ./test-results/
+
+  test-iac-scan:
+    runs-on: ubuntu-latest
+    name: Quick IaC Test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test IaC scan
+        uses: ./
+        with:
+          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
+          falcon_region: ${{ secrets.FALCON_REGION }}
+          scan_type: iac
+          path: tests
+          output_path: ./iac-test-results/
+          report_formats: json
+      
+      - name: Upload IaC results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iac-test-results
+          path: ./iac-test-results/
