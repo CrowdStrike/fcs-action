@@ -36,7 +36,7 @@ jobs:
           report_formats: sarif
           minimum_severity: medium
         env:
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
+          FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       
       - name: Show scan results
         run: |
@@ -84,7 +84,7 @@ jobs:
           output_path: iac-scan-results/
           report_formats: sarif
         env:
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
+          FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       
       - name: Show scan results
         run: |
