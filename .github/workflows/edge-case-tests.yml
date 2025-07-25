@@ -15,15 +15,16 @@ jobs:
       - name: Test vulnerability-only scan
         uses: ./
         with:
-          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
-          falcon_region: ${{ secrets.FALCON_REGION }}
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_REGION }}
           scan_type: image
           image: alpine:latest
           vulnerability_only: true
           output_path: ./vuln-results/
           report_formats: json,sarif
           minimum_score: 7.0
+        env:
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
       
       - name: Upload vulnerability results
         uses: actions/upload-artifact@v4
@@ -42,14 +43,15 @@ jobs:
       - name: Test SBOM-only scan
         uses: ./
         with:
-          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
-          falcon_region: ${{ secrets.FALCON_REGION }}
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
           image: redis:alpine
           sbom_only: true
           output_path: ./sbom-results/
           report_formats: sbom-cylconedx
+        env:
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
       
       - name: Upload SBOM results
         uses: actions/upload-artifact@v4
@@ -68,15 +70,17 @@ jobs:
       - name: Test upload to Falcon Console
         uses: ./
         with:
-          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
-          falcon_region: ${{ secrets.FALCON_REGION }}
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
           image: python:3.9-slim
           upload_results: true
           output_path: ./upload-results/
           report_formats: json
           minimum_severity: low
+        env:
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
+
       
       - name: Upload scan results
         uses: actions/upload-artifact@v4

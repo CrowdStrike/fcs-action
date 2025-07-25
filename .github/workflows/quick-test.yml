@@ -15,14 +15,15 @@ jobs:
       - name: Test basic image scan
         uses: ./
         with:
-          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
-          falcon_region: ${{ secrets.FALCON_REGION }}
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
           image: nginx:latest
           output_path: ./test-results/
           report_formats: json
           minimum_severity: medium
+        env:
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
       
       - name: Upload results
         uses: actions/upload-artifact@v4
@@ -41,13 +42,14 @@ jobs:
       - name: Test IaC scan
         uses: ./
         with:
-          falcon_client_id: ${{ secrets.FALCON_CLIENT_ID }}
-          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
-          falcon_region: ${{ secrets.FALCON_REGION }}
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: iac
           path: tests
           output_path: ./iac-test-results/
           report_formats: json
+        env:
+          falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
       
       - name: Upload IaC results
         uses: actions/upload-artifact@v4
