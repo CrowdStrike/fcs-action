@@ -5,12 +5,25 @@ on:
     types: [labeled]
   
 jobs:
-  test-basic-image-scan:
+  test-ia-scan:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
-    name: Quick Basic Test
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Create scan results directory
+        run: mkdir ia-scan-results
       
       - name: Test basic image scan
         uses: ./
@@ -19,25 +32,47 @@ jobs:
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
           image: nginx:latest
-          output_path: ./test-results/
-          report_formats: json
+          output_path: ia-scan-results/
+          report_formats: sarif
           minimum_severity: medium
         env:
           falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
       
-      - name: Upload results
-        uses: actions/upload-artifact@v4
+      - name: Show scan results
+        run: |
+          ls -la ia-scan-results/
+          if [ -f ia-scan-results/*.sarif ]; then
+            cat ia-scan-results/*.sarif
+          else
+            echo "No SARIF files found"
+          fi
+
+      - name: Upload sarif file
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          name: quick-test-results
-          path: ./test-results/
+          sarif_file: "./ia-scan-results"
 
   test-iac-scan:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
     name: Quick IaC Test
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Create IaC scan results directory
+        run: mkdir iac-scan-results
       
       - name: Test IaC scan
         uses: ./
@@ -45,15 +80,23 @@ jobs:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: iac
-          path: tests
-          output_path: ./iac-test-results/
-          report_formats: json
+          path: tests/
+          output_path: iac-scan-results/
+          report_formats: sarif
         env:
           falcon_client_secret: ${{ secrets.FALCON_CLIENT_SECRET }}
       
-      - name: Upload IaC results
-        uses: actions/upload-artifact@v4
+      - name: Show scan results
+        run: |
+          ls -la iac-scan-results/
+          if [ -f iac-scan-results/*.sarif ]; then
+            cat iac-scan-results/*.sarif
+          else
+            echo "No SARIF files found"
+          fi
+
+      - name: Upload sarif file
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          name: iac-test-results
-          path: ./iac-test-results/
+          sarif_file: "./iac-scan-results"
