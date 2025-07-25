@@ -1,6 +1,8 @@
 name: Edge Case Tests
 on:
-  workflow_dispatch:
+  push:
+  pull_request_target:
+    types: [labeled]
   
 jobs:
   test-vulnerability-only:

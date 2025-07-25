@@ -1,6 +1,8 @@
 name: Quick Test
 on:
-  workflow_dispatch:
+  push:
+  pull_request_target:
+    types: [labeled]
   
 jobs:
   test-basic-image-scan:
