@@ -65,12 +65,12 @@ class FCSPuller:
                 return 'windows-amd64'
         
         # Default fallback
-        print(f"⚠️  Unknown platform {system}-{machine}, defaulting to linux-amd64")
+        print(f"WARNING: Unknown platform {system}-{machine}, defaulting to linux-amd64")
         return 'linux-amd64'
     
     def get_available_fcs_files(self, platform: str) -> Optional[Dict[str, Any]]:
         """Get available FCS files for the specified platform."""
-        print(f"🔍 Querying available FCS files for platform: {platform}")
+        print(f"Querying available FCS files for platform: {platform}")
         
         try:
             response = self.downloads.enumerate(
@@ -79,12 +79,12 @@ class FCSPuller:
             )
             
             if response["status_code"] != 200:
-                print(f"❌ Error enumerating files: {response}")
+                print(f"ERROR: Error enumerating files: {response}")
                 return None
                 
             return response["body"]
         except Exception as e:
-            print(f"❌ Error querying FCS files: {e}")
+            print(f"ERROR: Error querying FCS files: {e}")
             return None
     
     def find_version(self, files_data: Dict[str, Any], target_version: Optional[str] = None) -> Optional[Dict[str, Any]]:
@@ -92,19 +92,19 @@ class FCSPuller:
         resources = files_data.get("resources", [])
         
         if not resources:
-            print("❌ No resources found in the response")
+            print("ERROR: No resources found in the response")
             return None
         
         if target_version:
             # Look for the specific version
             for resource in resources:
                 if resource.get("version") == target_version:
-                    print(f"✅ Found FCS {target_version}: {resource.get('file_name')}")
+                    print(f"Found FCS {target_version}: {resource.get('file_name')}")
                     return resource
             
             # If target version not found, show available versions
             versions = [r.get("version") for r in resources if r.get("version")]
-            print(f"❌ FCS {target_version} not found. Available versions: {versions}")
+            print(f"ERROR: FCS {target_version} not found. Available versions: {versions}")
             return None
         
         # Get the latest version
@@ -112,19 +112,19 @@ class FCSPuller:
             try:
                 # Sort by version number
                 latest = max(resources, key=lambda x: [int(v) for v in x.get("version", "0.0.0").split(".")])
-                print(f"✅ Using latest FCS version: {latest.get('version')} - {latest.get('file_name')}")
+                print(f"Using latest FCS version: {latest.get('version')} - {latest.get('file_name')}")
                 return latest
             except ValueError:
                 # Fallback to first resource if version parsing fails
                 latest = resources[0]
-                print(f"✅ Using FCS version: {latest.get('version')} - {latest.get('file_name')}")
+                print(f"Using FCS version: {latest.get('version')} - {latest.get('file_name')}")
                 return latest
             
         return None
     
     def get_download_details(self, file_name: str, file_version: str) -> Optional[Dict[str, Any]]:
         """Get download details including pre-signed URL and hash."""
-        print(f"🔗 Getting download details for {file_name} v{file_version}")
+        print(f"Getting download details for {file_name} v{file_version}")
         
         try:
             response = self.downloads.download(
@@ -133,47 +133,39 @@ class FCSPuller:
             )
             
             if response["status_code"] != 200:
-                print(f"❌ Error getting download details: {response}")
+                print(f"ERROR: Error getting download details: {response}")
                 return None
                 
             return response["body"]["resources"]
         except Exception as e:
-            print(f"❌ Error getting download details: {e}")
+            print(f"ERROR: Error getting download details: {e}")
             return None
     
     def download_file(self, download_url: str, file_name: str, expected_hash: str) -> bool:
         """Download the file and validate its hash."""
-        print(f"⬇️  Downloading {file_name}...")
+        print(f"Downloading {file_name}...")
         
         try:
             response = requests.get(download_url, stream=True)
             response.raise_for_status()
             
-            # Download with progress indication
-            total_size = int(response.headers.get('content-length', 0))
-            downloaded = 0
-            
             with open(file_name, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-                        downloaded += len(chunk)
-                        if total_size > 0:
-                            percent = (downloaded / total_size) * 100
-                            print(f"\rProgress: {percent:.1f}%", end='', flush=True)
             
-            print(f"\n✅ Downloaded {file_name}")
+            print(f"Downloaded {file_name}")
             
             # Validate hash
             return self.validate_file_hash(file_name, expected_hash)
             
         except Exception as e:
-            print(f"❌ Download failed: {e}")
+            print(f"ERROR: Download failed: {e}")
             return False
     
     def validate_file_hash(self, file_name: str, expected_hash: str) -> bool:
         """Validate the downloaded file's SHA256 hash."""
-        print(f"🔍 Validating file hash...")
+        print(f"Validating file hash...")
         
         try:
             sha256_hash = hashlib.sha256()
@@ -184,21 +176,21 @@ class FCSPuller:
             file_hash = sha256_hash.hexdigest()
             
             if file_hash.lower() == expected_hash.lower():
-                print("✅ File hash validated successfully")
+                print("File hash validated successfully")
                 return True
             else:
-                print(f"❌ Hash mismatch!")
+                print(f"ERROR: Hash mismatch!")
                 print(f"Expected: {expected_hash}")
                 print(f"Got:      {file_hash}")
                 return False
                 
         except Exception as e:
-            print(f"❌ Hash validation failed: {e}")
+            print(f"ERROR: Hash validation failed: {e}")
             return False
     
     def extract_and_setup_fcs(self, file_name: str, bin_path: str) -> Optional[str]:
         """Extract FCS binary and set it up."""
-        print(f"📦 Extracting {file_name}...")
+        print(f"Extracting {file_name}...")
         
         try:
             # Create bin directory
@@ -230,23 +222,23 @@ class FCSPuller:
             fcs_path = Path(bin_path) / fcs_binary
             
             if not fcs_path.exists():
-                print(f"❌ FCS binary not found after extraction: {fcs_path}")
+                print(f"ERROR: FCS binary not found after extraction: {fcs_path}")
                 return None
             
             # Make executable on Unix-like systems
             if platform.system().lower() != 'windows':
                 os.chmod(fcs_path, 0o755)
             
-            print(f"✅ FCS binary ready at: {fcs_path}")
+            print(f"FCS binary ready at: {fcs_path}")
             return str(fcs_path)
             
         except Exception as e:
-            print(f"❌ Extraction failed: {e}")
+            print(f"ERROR: Extraction failed: {e}")
             return None
     
     def pull_fcs(self, target_version: Optional[str] = None, bin_path: str = "/opt/crowdstrike/bin") -> Optional[str]:
         """Main method to pull FCS."""
-        print(f"🚀 Starting FCS download (region: {self.region})")
+        print(f"Starting FCS download (region: {self.region})")
         
         # Step 1: Detect platform
         detected_platform = self.detect_platform()
@@ -273,7 +265,7 @@ class FCSPuller:
         expected_hash = download_details.get("file_hash")
         
         if not download_url or not expected_hash:
-            print("❌ Missing download URL or file hash")
+            print("ERROR: Missing download URL or file hash")
             return None
         
         # Step 5: Download and validate
@@ -286,7 +278,7 @@ class FCSPuller:
         # Clean up downloaded archive
         try:
             os.remove(file_name)
-            print(f"🧹 Cleaned up {file_name}")
+            print(f"Cleaned up {file_name}")
         except Exception:
             pass
         
@@ -299,7 +291,7 @@ def set_github_output(name: str, value: str):
     if github_output:
         with open(github_output, 'a') as f:
             f.write(f"{name}={value}\n")
-        print(f"📝 Set GitHub output: {name}={value}")
+        print(f"Set GitHub output: {name}={value}")
     else:
         # Fallback for older runners
         print(f"::set-output name={name}::{value}")
@@ -308,7 +300,7 @@ def set_github_output(name: str, value: str):
 def main():
     """Main function for GitHub Actions."""
     print("=" * 60)
-    print("🦅 CrowdStrike FCS Puller using falconpy")
+    print("CrowdStrike FCS Puller using falconpy")
     print("=" * 60)
     
     # Get inputs from environment (GitHub Actions sets these)
@@ -318,17 +310,17 @@ def main():
     version = os.getenv('INPUT_VERSION')  # Optional
     
     if not client_id:
-        print("❌ Error: INPUT_FALCON_CLIENT_ID environment variable is required")
+        print("ERROR: INPUT_FALCON_CLIENT_ID environment variable is required")
         sys.exit(1)
     
     if not client_secret:
-        print("❌ Error: FALCON_CLIENT_SECRET environment variable is required")
+        print("ERROR: FALCON_CLIENT_SECRET environment variable is required")
         print("   This should be set by the workflow using:")
         print("   env:")
         print("     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}")
         sys.exit(1)
     
-    print(f"🔧 Configuration:")
+    print(f"Configuration:")
     print(f"   Region: {region}")
     print(f"   Version: {version or 'latest'}")
     
@@ -336,7 +328,7 @@ def main():
     try:
         puller = FCSPuller(client_id=client_id, client_secret=client_secret, region=region)
     except Exception as e:
-        print(f"❌ Failed to initialize FCS puller: {e}")
+        print(f"ERROR: Failed to initialize FCS puller: {e}")
         sys.exit(1)
     
     # Pull FCS
@@ -350,7 +342,7 @@ def main():
         # Also add to PATH for convenience
         current_path = os.environ.get('PATH', '')
         new_path = f"{bin_path}:{current_path}"
-        print(f"🔧 Adding {bin_path} to PATH")
+        print(f"Adding {bin_path} to PATH")
         
         # Set for GitHub Actions
         github_path = os.getenv('GITHUB_PATH')
@@ -358,11 +350,11 @@ def main():
             with open(github_path, 'a') as f:
                 f.write(f"{bin_path}\n")
         
-        print("\n🎉 FCS pull completed successfully!")
-        print(f"📍 FCS binary: {fcs_binary_path}")
+        print("\nFCS pull completed successfully!")
+        print(f"FCS binary: {fcs_binary_path}")
         sys.exit(0)
     else:
-        print("\n💥 FCS pull failed!")
+        print("\nFCS pull failed!")
         sys.exit(1)
 
 

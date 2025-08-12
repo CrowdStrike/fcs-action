@@ -157,7 +157,7 @@ set_parameters() {
     elif [[ "$scan_type" == "image" ]]; then
         # Image-specific parameters
         local input_params=(
-            "IMAGE:image"
+            #"IMAGE:image"
             "SOCKET:socket"
             "PLATFORM:platform"
             "OUTPUT_PATH:output"
@@ -251,7 +251,7 @@ execute_fcs_cli() {
     if [[ "$scan_type" == "iac" ]]; then
         $FCS_CLI_BIN iac scan $args
     elif [[ "$scan_type" == "image" ]]; then
-        $FCS_CLI_BIN scan image $args
+        $FCS_CLI_BIN scan image $INPUT_IMAGE $args
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
@@ -261,6 +261,7 @@ execute_fcs_cli() {
 }
 
 main() {
+    export FCS_CLIENT_SECRET="$FALCON_CLIENT_SECRET"
     validate_required_inputs
     validate_path
     local args
