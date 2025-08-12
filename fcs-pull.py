@@ -28,15 +28,17 @@ class FCSPuller:
         'us-gov-2': 'api.us-gov-2.crowdstrike.mil'
     }
     
-    def __init__(self, client_id: str, region: str):
+    def __init__(self, client_id: str, client_secret: str, region: str):
         """Initialize the FCS puller."""
         self.client_id = client_id
+        self.client_secret = client_secret
         self.region = region
         self.api_url = self.REGION_MAP.get(region, 'api.crowdstrike.com')
         
         # Initialize Downloads client
         self.downloads = Downloads(
             client_id=client_id,
+            client_secret=client_secret,
             base_url=self.api_url
         )
     
@@ -311,11 +313,19 @@ def main():
     
     # Get inputs from environment (GitHub Actions sets these)
     client_id = os.getenv('INPUT_FALCON_CLIENT_ID')
+    client_secret = os.getenv('FALCON_CLIENT_SECRET')  # Set by workflow, not action input
     region = os.getenv('INPUT_FALCON_REGION', 'us-1')
     version = os.getenv('INPUT_VERSION')  # Optional
     
     if not client_id:
         print("❌ Error: INPUT_FALCON_CLIENT_ID environment variable is required")
+        sys.exit(1)
+    
+    if not client_secret:
+        print("❌ Error: FALCON_CLIENT_SECRET environment variable is required")
+        print("   This should be set by the workflow using:")
+        print("   env:")
+        print("     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}")
         sys.exit(1)
     
     print(f"🔧 Configuration:")
@@ -324,7 +334,7 @@ def main():
     
     # Initialize puller
     try:
-        puller = FCSPuller(client_id=client_id, region=region)
+        puller = FCSPuller(client_id=client_id, client_secret=client_secret, region=region)
     except Exception as e:
         print(f"❌ Failed to initialize FCS puller: {e}")
         sys.exit(1)
