@@ -154,9 +154,18 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Pull FCS CLI Docker image
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install Python dependencies
+      run: pip install -r $GITHUB_ACTION_PATH/requirements.txt
+      shell: bash
+    
+    - name: Pull FCS CLI using falconpy
       id: fcs-pull
-      run: $GITHUB_ACTION_PATH/fcs-pull.sh
+      run: python $GITHUB_ACTION_PATH/fcs-pull.py
       shell: bash
       env:
         INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
