@@ -44,6 +44,7 @@ validate_bool() {
     value=$(echo "$1" | tr '[:upper:]' '[:lower:]')
     case "$value" in
         true|false) echo "$value" ;;
+        "") echo "false" ;;  # Treat empty string as false
         *) echo "Invalid" ;;
     esac
 }
