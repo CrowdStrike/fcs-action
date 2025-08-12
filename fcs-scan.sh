@@ -261,6 +261,7 @@ execute_fcs_cli() {
 }
 
 main() {
+    export FCS_CLIENT_ID="$INPUT_FALCON_CLIENT_ID"
     export FCS_CLIENT_SECRET="$FALCON_CLIENT_SECRET"
     validate_required_inputs
     validate_path
