@@ -22,39 +22,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create scan results directory
-        run: mkdir ia-scan-results
-      
       - name: Test basic image scan
         uses: ./
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
+          output_path: image-scan-results/image_scan_results.json
           image: nginx:latest
-          output_path: ia-scan-results/
           report_formats: sarif
           minimum_severity: medium
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       
-      - name: Show scan results
+      - name: Show json scan results
         run: |
-          ls -la ia-scan-results/
-          echo "Looking for SARIF files..."
-          find ia-scan-results/ -name "*.sarif" -type f || echo "No SARIF files found"
-          if ls ia-scan-results/*.sarif 1> /dev/null 2>&1; then
-            echo "SARIF file contents:"
-            cat ia-scan-results/*.sarif
-          else
-            echo "No SARIF files found to display"
-          fi
+          cat image-scan-results/*.json
+          
+      - name: Show sarif scan results
+        run: |
+          cat image-scan-results/*.sarif
 
       - name: Upload sarif file
         uses: github/codeql-action/upload-sarif@v3
-        if: always() && hashFiles('ia-scan-results/*.sarif') != ''
         with:
-          sarif_file: ia-scan-results
+          sarif_file: image-scan-results/
 
   test-iac-scan:
     if: |

@@ -355,6 +355,26 @@ You can also use configuration files to customize the scan parameters. For more 
 }
 ```
 
+## SARIF Output Transformation
+
+When SARIF format reports are generated, the action automatically applies transformations to ensure compatibility with GitHub's SARIF 2.1.0 parsing requirements:
+
+### Transformations Applied
+
+1. **Tool Information**: Sets empty `informationUri` fields to `https://crowdstrike.com`
+2. **Result Levels**: Normalizes severity levels to standard SARIF values (`error`, `warning`, `note`, `none`)
+3. **Result Types**: Removes unsupported `type` properties from results
+4. **Location Structure**: Ensures every result has a standardized locations array with URI set to `"unknown"`
+
+### Why These Transformations Are Needed
+
+These transformations resolve common GitHub SARIF parsing issues by:
+- Ensuring all required fields meet GitHub's validation requirements
+- Standardizing location structures to prevent parsing errors
+- Normalizing severity levels for consistent GitHub Code Scanning integration
+
+The transformations are applied automatically when SARIF format is requested and do not affect the scan results' accuracy or completeness.
+
 ## Support
 
 This project is a community-driven, open source project designed to provide a simple way to run CrowdStrike Falcon Cloud Security (FCS) CLI in a GitHub Action.

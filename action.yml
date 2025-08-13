@@ -202,8 +202,6 @@ runs:
         INPUT_IMAGE: ${{ inputs.image }}
         INPUT_SOURCE_OVERRIDE: ${{ inputs.source_override }}
         INPUT_SOCKET: ${{ inputs.socket }}
-        INPUT_USERNAME: ${{ inputs.username }}
-        INPUT_PASSWORD: ${{ inputs.password }}
         INPUT_REGISTRY_URL_OVERRIDE: ${{ inputs.registry_url_override }}
         INPUT_REGISTRY_TYPE: ${{ inputs.registry_type }}
         INPUT_REGISTRY_PORT: ${{ inputs.registry_port }}

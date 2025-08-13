@@ -5,27 +5,100 @@
 
 readonly FCS_CLI_BIN="${OUTPUT_FCS_BIN:-}"
 
-# TODO: Remove these functions when upstream fix is in place
-check_sarif() {
+check_sarif_requested() {
     local report_formats="${INPUT_REPORT_FORMATS:-}"
-    # If sarif is in report_formats, set variable
+    local output_path="${INPUT_OUTPUT_PATH:-}"
+    
+    # Check if sarif is in report_formats
     if [[ -n "${report_formats}" ]]; then
         if echo "${report_formats}" | grep -qw "sarif"; then
             echo "true"
+            return
         fi
+    fi
+    
+    # Check if output_path ends with .sarif
+    if [[ -n "${output_path}" && "${output_path}" == *.sarif ]]; then
+        echo "true"
+        return
     fi
 }
 
-fix_sarif() {
-    local file output_path
-    output_path="${INPUT_OUTPUT_PATH}"
-    file=$(find "$output_path" -name "*-scan-results.sarif")
-    if [[ -n "$file" ]]; then
-        jq 'if .runs[0].tool.driver.informationUri == "" then
-            .runs[0].tool.driver.informationUri = "https://crowdstrike.com"
-            else
-                .
-            end' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+prepare_report_formats_for_cli() {
+    local report_formats="${INPUT_REPORT_FORMATS:-}"
+    
+    # If sarif is requested, replace it with json for CLI execution
+    if echo "${report_formats}" | grep -qw "sarif"; then
+        # Replace 'sarif' with 'json', handle various combinations
+        report_formats=$(echo "${report_formats}" | sed 's/sarif/json/g')
+        # Remove duplicate 'json' entries if they exist
+        report_formats=$(echo "${report_formats}" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+    fi
+    
+    echo "${report_formats}"
+}
+
+convert_json_to_sarif() {
+    local output_path
+    
+    if [ "$INPUT_SCAN_TYPE" = "iac" ]; then
+        output_path="${INPUT_OUTPUT_PATH}"
+    elif [ "$INPUT_SCAN_TYPE" = "image" ] && [ "$INPUT_OUTPUT_PATH" ]; then
+        output_path="${INPUT_OUTPUT_PATH}"
+        # If the original output path ended with .sarif, the actual file was created with .json
+        if [[ "$output_path" == *.sarif ]]; then
+            output_path="${output_path%.sarif}.json"
+            log "convert_json_to_sarif: Output path adjusted from .sarif to .json: $output_path"
+        fi
+    else
+        output_path="$HOME/.crowdstrike/image_assessment/reports/"
+    fi
+    
+    log "convert_json_to_sarif: Looking for JSON files in: $output_path"
+    
+    # Look for all .json files - handle both file and directory paths
+    local all_json_files
+    if [[ -f "$output_path" && "$output_path" == *.json ]]; then
+        # Handle single JSON file case (typically for image scans)
+        all_json_files="$output_path"
+        log "convert_json_to_sarif: Processing single JSON file: $output_path"
+    elif [[ -d "$output_path" ]]; then
+        # Handle directory case (typically for IaC scans)
+        all_json_files=$(find "$output_path" -name "*.json" 2>/dev/null)
+        log "convert_json_to_sarif: Searching directory for JSON files"
+    else
+        # Path doesn't exist or is not a file/directory
+        all_json_files=""
+        log "convert_json_to_sarif: Path does not exist or is not a file/directory: $output_path" "WARN"
+    fi
+    
+    if [[ -n "$all_json_files" ]]; then
+        log "convert_json_to_sarif: Found JSON files: $all_json_files"
+        local success_count=0
+        local total_count=0
+        
+        while IFS= read -r json_file; do
+            if [[ -n "$json_file" ]]; then
+                ((total_count++))
+                
+                # Generate SARIF filename
+                local sarif_file="${json_file%.json}.sarif"
+                
+                log "convert_json_to_sarif: Converting $json_file to $sarif_file"
+                
+                # Use the Python converter
+                if python3 "$GITHUB_WORKSPACE/json_to_sarif_converter.py" "$json_file" "$sarif_file" 2>/dev/null; then
+                    ((success_count++))
+                    log "convert_json_to_sarif: Successfully converted $json_file to $sarif_file"
+                else
+                    log "convert_json_to_sarif: Failed to convert $json_file" "ERROR"
+                fi
+            fi
+        done <<< "$all_json_files"
+        
+        log "convert_json_to_sarif: Successfully converted $success_count out of $total_count JSON files to SARIF"
+    else
+        log "convert_json_to_sarif: No JSON files found in $output_path" "WARN"
     fi
 }
 
@@ -83,6 +156,19 @@ validate_path() {
         if [[ -z "$image" ]]; then
             die "The 'image' input is required for image scanning."
         fi
+        
+        # If OUTPUT_PATH is provided for image scanning, validate file extension
+        local output_path="${INPUT_OUTPUT_PATH:-}"
+        if [[ -n "$output_path" ]]; then
+            case "$output_path" in
+                *.cdx.json|*.sarif|*.json)
+                    # Valid extension
+                    ;;
+                *)
+                    die "Invalid output path for image scanning: '$output_path'. Path must end with .json, .sarif, or .cdx.json extension."
+                    ;;
+            esac
+        fi
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
@@ -134,7 +220,14 @@ set_parameters() {
             local input_var="INPUT_${param%%:*}"
             local param_name="${param#*:}"
             if [[ -n "${!input_var:-}" ]]; then
-                params+=("--${param_name} ${!input_var}")
+                # Special handling for report formats - replace sarif with json if needed
+                if [[ "$param_name" == "report-formats" ]]; then
+                    local prepared_formats
+                    prepared_formats=$(prepare_report_formats_for_cli)
+                    params+=("--${param_name} ${prepared_formats}")
+                else
+                    params+=("--${param_name} ${!input_var}")
+                fi
             fi
         done
 
@@ -175,7 +268,22 @@ set_parameters() {
             local input_var="INPUT_${param%%:*}"
             local param_name="${param#*:}"
             if [[ -n "${!input_var:-}" ]]; then
-                params+=("--${param_name} ${!input_var}")
+                # Special handling for report formats - replace sarif with json if needed
+                if [[ "$param_name" == "format" ]]; then
+                    local prepared_formats
+                    prepared_formats=$(prepare_report_formats_for_cli)
+                    params+=("--${param_name} ${prepared_formats}")
+                elif [[ "$param_name" == "output" ]]; then
+                    # Special handling for output path - change .sarif to .json to ensure JSON generation
+                    local output_value="${!input_var}"
+                    if [[ "$output_value" == *.sarif ]]; then
+                        output_value="${output_value%.sarif}.json"
+                        log "Output path changed from ${!input_var} to ${output_value} to ensure JSON generation"
+                    fi
+                    params+=("--${param_name} ${output_value}")
+                else
+                    params+=("--${param_name} ${!input_var}")
+                fi
             fi
         done
 
@@ -268,11 +376,11 @@ main() {
     local args
     args=$(set_parameters)
     execute_fcs_cli "$args"
-    # TODO: Remove this when upstream fix is in place
-    # if sarif format has been requested, then fix informationUri
-    IS_SARIF=$(check_sarif)
+    
+    # If SARIF format was requested, convert JSON output to SARIF using Python converter
+    IS_SARIF=$(check_sarif_requested)
     if [[ "${IS_SARIF}" == "true" ]]; then
-        fix_sarif
+        convert_json_to_sarif
     fi
 }
 

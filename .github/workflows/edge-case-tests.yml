@@ -5,86 +5,123 @@ on:
     types: [labeled]
   
 jobs:
-  test-vulnerability-only:
+  test-ia-scan-vuln-only:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
-    name: Test Vulnerability Only
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Test vulnerability-only scan
+
+      - name: Test basic image scan
         uses: ./
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
-          image: alpine:latest
+          output_path: image-scan-results/image_scan_results.sarif
           vulnerability_only: true
-          output_path: ./vuln-results/
-          report_formats: json,sarif
-          minimum_score: 7.0
+          image: nginx:latest
+          report_formats: sarif
+          minimum_severity: medium
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       
-      - name: Upload vulnerability results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: vulnerability-test-results
-          path: ./vuln-results/
+      - name: Show json scan results
+        run: |
+          cat image-scan-results/*.json
+          
+      - name: Show sarif scan results
+        run: |
+          cat image-scan-results/*.sarif
 
-  test-sbom-only:
+      - name: Upload sarif file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: image-scan-results/
+
+  test-ia-scan-sbom-only:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
-    name: Test SBOM Only
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Test SBOM-only scan
+
+      - name: Test basic image scan
         uses: ./
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
-          image: redis:alpine
+          output_path: image-scan-results/image_scan_results.cdx.json
           sbom_only: true
-          output_path: ./sbom-results/
-          report_formats: sbom-cylconedx
+          report_formats: cyclonedx-json
+          image: nginx:latest
+          minimum_severity: medium
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       
-      - name: Upload SBOM results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: sbom-test-results
-          path: ./sbom-results/
+      - name: Show scan results
+        run: |
+          cat image-scan-results/*.cdx.json
 
-  test-upload-functionality:
+  test-ia-scan-json-upload:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: ubuntu-latest
-    name: Test Upload to Falcon
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Test upload to Falcon Console
+
+      - name: Test basic image scan
         uses: ./
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
           falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
-          image: python:3.9-slim
-          upload_results: true
-          output_path: ./upload-results/
+          output_path: image-scan-results/image_scan_results.json
+          vulnerability_only: true
+          image: nginx:latest
           report_formats: json
-          minimum_severity: low
+          minimum_severity: medium
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
-
       
+      - name: Show scan results
+        run: |
+          cat image-scan-results/*.json
+
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: upload-test-results
-          path: ./upload-results/
+          name: image_scan_results.json
+          path: ./image-scan-results/
