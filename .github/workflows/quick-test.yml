@@ -41,17 +41,20 @@ jobs:
       - name: Show scan results
         run: |
           ls -la ia-scan-results/
-          if [ -f ia-scan-results/*.sarif ]; then
+          echo "Looking for SARIF files..."
+          find ia-scan-results/ -name "*.sarif" -type f || echo "No SARIF files found"
+          if ls ia-scan-results/*.sarif 1> /dev/null 2>&1; then
+            echo "SARIF file contents:"
             cat ia-scan-results/*.sarif
           else
-            echo "No SARIF files found"
+            echo "No SARIF files found to display"
           fi
 
       - name: Upload sarif file
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('ia-scan-results/*.sarif') != ''
         with:
-          sarif_file: "./ia-scan-results"
+          sarif_file: ia-scan-results
 
   test-iac-scan:
     if: |
@@ -89,14 +92,17 @@ jobs:
       - name: Show scan results
         run: |
           ls -la iac-scan-results/
-          if [ -f iac-scan-results/*.sarif ]; then
+          echo "Looking for SARIF files..."
+          find iac-scan-results/ -name "*.sarif" -type f || echo "No SARIF files found"
+          if ls iac-scan-results/*.sarif 1> /dev/null 2>&1; then
+            echo "SARIF file contents:"
             cat iac-scan-results/*.sarif
           else
-            echo "No SARIF files found"
+            echo "No SARIF files found to display"
           fi
 
       - name: Upload sarif file
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('iac-scan-results/*.sarif') != ''
         with:
-          sarif_file: "./iac-scan-results"
+          sarif_file: iac-scan-results

@@ -16,7 +16,7 @@ jobs:
         uses: ./
         with:
           falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
-          falcon_region: ${{ vars.FALCON_REGION }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
           scan_type: image
           image: alpine:latest
           vulnerability_only: true
