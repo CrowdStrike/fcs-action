@@ -163,9 +163,9 @@ runs:
       run: pip install -r $GITHUB_ACTION_PATH/requirements.txt
       shell: bash
     
-    - name: Pull FCS CLI using falconpy
-      id: fcs-pull
-      run: python $GITHUB_ACTION_PATH/fcs-pull.py
+    - name: Download FCS CLI using falconpy
+      id: fcs-download
+      run: python $GITHUB_ACTION_PATH/fcs_download.py
       shell: bash
       env:
         INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
@@ -177,7 +177,7 @@ runs:
       run: $GITHUB_ACTION_PATH/fcs-scan.sh
       shell: bash
       env:
-        OUTPUT_FCS_BIN: ${{ steps.fcs-pull.outputs.FCS_BIN }}
+        OUTPUT_FCS_BIN: ${{ steps.fcs-download.outputs.FCS_BIN }}
         INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
         INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
         INPUT_SCAN_TYPE: ${{ inputs.scan_type }}
