@@ -77,26 +77,8 @@ inputs:
   image:
     description: 'Container image to scan (e.g., nginx:latest, docker://image:tag)'
     required: false
-  source_override:
-    description: 'Override automatic source detection (registry, daemon, tar)'
-    required: false
   socket:
     description: 'Custom socket path for container engine (e.g., unix:///var/run/docker.sock)'
-    required: false
-  username:
-    description: 'Registry username for authentication'
-    required: false
-  password:
-    description: 'Registry password for authentication'
-    required: false
-  registry_url_override:
-    description: 'Override the registry URL'
-    required: false
-  registry_type:
-    description: 'Registry type (e.g., dockerhub, ecr, gcr, artifactory)'
-    required: false
-  registry_port:
-    description: 'Registry port number'
     required: false
   platform:
     description: 'Target platform for multi-platform images in OS/ARCH[/VARIANT] format (e.g., linux/amd64)'
@@ -158,11 +140,11 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-    
+
     - name: Install Python dependencies
       run: pip install -r $GITHUB_ACTION_PATH/requirements.txt
       shell: bash
-    
+
     - name: Download FCS CLI using falconpy
       id: fcs-download
       run: python $GITHUB_ACTION_PATH/fcs_download.py
@@ -200,11 +182,7 @@ runs:
         INPUT_UPLOAD_RESULTS: ${{ inputs.upload_results }}
         # Image scanning environment variables
         INPUT_IMAGE: ${{ inputs.image }}
-        INPUT_SOURCE_OVERRIDE: ${{ inputs.source_override }}
         INPUT_SOCKET: ${{ inputs.socket }}
-        INPUT_REGISTRY_URL_OVERRIDE: ${{ inputs.registry_url_override }}
-        INPUT_REGISTRY_TYPE: ${{ inputs.registry_type }}
-        INPUT_REGISTRY_PORT: ${{ inputs.registry_port }}
         INPUT_PLATFORM: ${{ inputs.platform }}
         INPUT_VULNERABILITY_ONLY: ${{ inputs.vulnerability_only }}
         INPUT_SBOM_ONLY: ${{ inputs.sbom_only }}

@@ -369,6 +369,7 @@ When SARIF format reports are generated, the action automatically applies transf
 ### Why These Transformations Are Needed
 
 These transformations resolve common GitHub SARIF parsing issues by:
+
 - Ensuring all required fields meet GitHub's validation requirements
 - Standardizing location structures to prevent parsing errors
 - Normalizing severity levels for consistent GitHub Code Scanning integration

@@ -21,11 +21,11 @@ class FCSDownloader:
 
     # Region to API URL mapping
     REGION_MAP = {
-        'us-1': 'api.crowdstrike.com',
-        'us-2': 'api.us-2.crowdstrike.com',
-        'eu-1': 'api.eu-1.crowdstrike.com',
-        'us-gov-1': 'api.laggar.gcw.crowdstrike.com',
-        'us-gov-2': 'api.us-gov-2.crowdstrike.mil'
+        "us-1": "api.crowdstrike.com",
+        "us-2": "api.us-2.crowdstrike.com",
+        "eu-1": "api.eu-1.crowdstrike.com",
+        "us-gov-1": "api.laggar.gcw.crowdstrike.com",
+        "us-gov-2": "api.us-gov-2.crowdstrike.mil",
     }
 
     def __init__(self, client_id: str, client_secret: str, region: str):
@@ -33,12 +33,10 @@ class FCSDownloader:
         self.client_id = client_id
         self.client_secret = client_secret
         self.region = region
-        self.api_url = self.REGION_MAP.get(region, 'api.crowdstrike.com')
+        self.api_url = self.REGION_MAP.get(region, "api.crowdstrike.com")
         # Initialize Downloads client
         self.downloads = Downloads(
-            client_id=client_id,
-            client_secret=client_secret,
-            base_url=self.api_url
+            client_id=client_id, client_secret=client_secret, base_url=self.api_url
         )
 
     def detect_platform(self) -> str:
@@ -46,33 +44,32 @@ class FCSDownloader:
         system = platform.system().lower()
         machine = platform.machine().lower()
         # Map Python platform detection to FCS platform names
-        if system == 'linux':
-            if machine in ['aarch64', 'arm64']:
-                return 'linux-arm64'
-            elif machine in ['x86_64', 'amd64']:
-                return 'linux-amd64'
-        elif system == 'darwin':
-            if machine in ['arm64']:
-                return 'darwin-arm64'
-            elif machine in ['x86_64']:
-                return 'darwin-amd64'
-        elif system == 'windows':
-            if machine in ['aarch64', 'arm64']:
-                return 'windows-arm64'
-            elif machine in ['x86_64', 'amd64']:
-                return 'windows-amd64'
+        if system == "linux":
+            if machine in ["aarch64", "arm64"]:
+                return "linux-arm64"
+            elif machine in ["x86_64", "amd64"]:
+                return "linux-amd64"
+        elif system == "darwin":
+            if machine in ["arm64"]:
+                return "darwin-arm64"
+            elif machine in ["x86_64"]:
+                return "darwin-amd64"
+        elif system == "windows":
+            if machine in ["aarch64", "arm64"]:
+                return "windows-arm64"
+            elif machine in ["x86_64", "amd64"]:
+                return "windows-amd64"
 
         # Default fallback
-        print(f"WARNING: Unknown platform {system}-{machine}, defaulting to linux-amd64")
-        return 'linux-amd64'
+        print(
+            f"WARNING: Unknown platform {system}-{machine}, defaulting to linux-amd64"
+        )
+        return "linux-amd64"
 
     def get_available_fcs_files(self, platform: str) -> Optional[Dict[str, Any]]:
         """Get available FCS files for the specified platform."""
         try:
-            response = self.downloads.enumerate(
-                platform=platform,
-                category="fcs"
-            )
+            response = self.downloads.enumerate(platform=platform, category="fcs")
             if response["status_code"] != 200:
                 print(f"ERROR: Error enumerating files: {response}")
                 return None
@@ -81,7 +78,9 @@ class FCSDownloader:
             print(f"ERROR: Error querying FCS files: {e}")
             return None
 
-    def find_version(self, files_data: Dict[str, Any], target_version: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def find_version(
+        self, files_data: Dict[str, Any], target_version: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         """Find the specified version or latest if not specified."""
         resources = files_data.get("resources", [])
         if not resources:
@@ -95,29 +94,41 @@ class FCSDownloader:
                     return resource
             # If target version not found, show available versions
             versions = [r.get("version") for r in resources if r.get("version")]
-            print(f"ERROR: FCS {target_version} not found. Available versions: {versions}")
+            print(
+                f"ERROR: FCS {target_version} not found. Available versions: {versions}"
+            )
             return None
 
         # Get the latest version
         if resources:
             try:
                 # Sort by version number
-                latest = max(resources, key=lambda x: [int(v) for v in x.get("version", "0.0.0").split(".")])
-                print(f"Using latest FCS version: {latest.get('version')} - {latest.get('file_name')}")
+                latest = max(
+                    resources,
+                    key=lambda x: [
+                        int(v) for v in x.get("version", "0.0.0").split(".")
+                    ],
+                )
+                print(
+                    f"Using latest FCS version: {latest.get('version')} - {latest.get('file_name')}"
+                )
                 return latest
             except ValueError:
                 # Fallback to first resource if version parsing fails
                 latest = resources[0]
-                print(f"Using FCS version: {latest.get('version')} - {latest.get('file_name')}")
+                print(
+                    f"Using FCS version: {latest.get('version')} - {latest.get('file_name')}"
+                )
                 return latest
         return None
 
-    def get_download_details(self, file_name: str, file_version: str) -> Optional[Dict[str, Any]]:
+    def get_download_details(
+        self, file_name: str, file_version: str
+    ) -> Optional[Dict[str, Any]]:
         """Get download details including pre-signed URL and hash."""
         try:
             response = self.downloads.download(
-                file_name=file_name,
-                file_version=file_version
+                file_name=file_name, file_version=file_version
             )
             if response["status_code"] != 200:
                 print(f"ERROR: Error getting download details: {response}")
@@ -127,12 +138,14 @@ class FCSDownloader:
             print(f"ERROR: Error getting download details: {e}")
             return None
 
-    def download_file(self, download_url: str, file_name: str, expected_hash: str) -> bool:
+    def download_file(
+        self, download_url: str, file_name: str, expected_hash: str
+    ) -> bool:
         """Download the file and validate its hash."""
         try:
             response = requests.get(download_url, stream=True)
             response.raise_for_status()
-            with open(file_name, 'wb') as f:
+            with open(file_name, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -169,35 +182,44 @@ class FCSDownloader:
             # Create bin directory
             Path(bin_path).mkdir(parents=True, exist_ok=True)
             # Extract based on file type
-            if file_name.endswith('.tar.gz'):
-                with tarfile.open(file_name, 'r:gz') as tar:
+            if file_name.endswith(".tar.gz"):
+                with tarfile.open(file_name, "r:gz") as tar:
                     # Find the fcs binary in the archive
                     for member in tar.getmembers():
-                        if member.name.endswith('/fcs') or member.name == 'fcs':
+                        if member.name.endswith("/fcs") or member.name == "fcs":
                             # Extract to our bin path
-                            member.name = 'fcs'  # Rename to just 'fcs'
+                            member.name = "fcs"  # Rename to just 'fcs'
                             tar.extract(member, bin_path)
                             break
-            elif file_name.endswith('.zip'):
-                with zipfile.ZipFile(file_name, 'r') as zip_file:
+            elif file_name.endswith(".zip"):
+                with zipfile.ZipFile(file_name, "r") as zip_file:
                     # Find the fcs binary in the archive
                     for file_info in zip_file.filelist:
-                        if file_info.filename.endswith('/fcs') or \
-                           file_info.filename.endswith('fcs.exe') or \
-                           file_info.filename == 'fcs':
+                        if (
+                            file_info.filename.endswith("/fcs")
+                            or file_info.filename.endswith("fcs.exe")
+                            or file_info.filename == "fcs"
+                        ):
                             # Extract to our bin path
-                            extracted_name = 'fcs.exe' if file_info.filename.endswith('.exe') else 'fcs'
-                            with zip_file.open(file_info) as source, open(Path(bin_path) / extracted_name, 'wb') as target:
+                            extracted_name = (
+                                "fcs.exe"
+                                if file_info.filename.endswith(".exe")
+                                else "fcs"
+                            )
+                            with (
+                                zip_file.open(file_info) as source,
+                                open(Path(bin_path) / extracted_name, "wb") as target,
+                            ):
                                 target.write(source.read())
                             break
             # Determine the binary name (Windows uses .exe)
-            fcs_binary = 'fcs.exe' if platform.system().lower() == 'windows' else 'fcs'
+            fcs_binary = "fcs.exe" if platform.system().lower() == "windows" else "fcs"
             fcs_path = Path(bin_path) / fcs_binary
             if not fcs_path.exists():
                 print(f"ERROR: FCS binary not found after extraction: {fcs_path}")
                 return None
             # Make executable on Unix-like systems
-            if platform.system().lower() != 'windows':
+            if platform.system().lower() != "windows":
                 os.chmod(fcs_path, 0o755)
             # Create log directory that FCS expects
             log_dir = Path.home() / ".crowdstrike" / "log"
@@ -209,7 +231,11 @@ class FCSDownloader:
             print(f"ERROR: Extraction failed: {e}")
             return None
 
-    def download_fcs(self, target_version: Optional[str] = None, bin_path: str = "/opt/crowdstrike/bin") -> Optional[str]:
+    def download_fcs(
+        self,
+        target_version: Optional[str] = None,
+        bin_path: str = "/opt/crowdstrike/bin",
+    ) -> Optional[str]:
         """Main method to download FCS."""
         # Step 1: Detect platform
         detected_platform = self.detect_platform()
@@ -248,9 +274,9 @@ class FCSDownloader:
 
 def set_github_output(name: str, value: str):
     """Set GitHub Actions output variable."""
-    github_output = os.getenv('GITHUB_OUTPUT')
+    github_output = os.getenv("GITHUB_OUTPUT")
     if github_output:
-        with open(github_output, 'a') as f:
+        with open(github_output, "a") as f:
             f.write(f"{name}={value}\n")
         print(f"Set GitHub output: {name}={value}")
     else:
@@ -264,10 +290,12 @@ def main():
     print("CrowdStrike FCS download with falconpy")
     print("=" * 60)
     # Get inputs from environment (GitHub Actions sets these)
-    client_id = os.getenv('INPUT_FALCON_CLIENT_ID')
-    client_secret = os.getenv('FALCON_CLIENT_SECRET')  # Set by workflow, not action input
-    region = os.getenv('INPUT_FALCON_REGION', 'us-1')
-    version = os.getenv('INPUT_VERSION')  # Optional
+    client_id = os.getenv("INPUT_FALCON_CLIENT_ID")
+    client_secret = os.getenv(
+        "FALCON_CLIENT_SECRET"
+    )  # Set by workflow, not action input
+    region = os.getenv("INPUT_FALCON_REGION", "us-1")
+    version = os.getenv("INPUT_VERSION")  # Optional
     if not client_id:
         print("ERROR: INPUT_FALCON_CLIENT_ID environment variable is required")
         sys.exit(1)
@@ -282,7 +310,11 @@ def main():
     print(f"   Version: {version or 'latest'}")
     # Initialize downloader
     try:
-        downloader = FCSDownloader(client_id=client_id, client_secret=client_secret, region=region)
+        downloader = FCSDownloader(
+            client_id=client_id,
+            client_secret=client_secret,
+            region=region,
+        )
     except Exception as e:
         print(f"ERROR: Failed to initialize FCS downloader: {e}")
         sys.exit(1)
@@ -293,9 +325,9 @@ def main():
         # Set GitHub Actions output
         set_github_output("FCS_BIN", fcs_binary_path)
         # Set for GitHub Actions
-        github_path = os.getenv('GITHUB_PATH')
+        github_path = os.getenv("GITHUB_PATH")
         if github_path:
-            with open(github_path, 'a') as f:
+            with open(github_path, "a") as f:
                 f.write(f"{bin_path}\n")
         print("\nFCS download completed successfully!")
         print(f"FCS binary: {fcs_binary_path}")

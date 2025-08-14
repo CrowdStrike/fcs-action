@@ -8,7 +8,7 @@ readonly FCS_CLI_BIN="${OUTPUT_FCS_BIN:-}"
 check_sarif_requested() {
     local report_formats="${INPUT_REPORT_FORMATS:-}"
     local output_path="${INPUT_OUTPUT_PATH:-}"
-    
+
     # Check if sarif is in report_formats
     if [[ -n "${report_formats}" ]]; then
         if echo "${report_formats}" | grep -qw "sarif"; then
@@ -16,7 +16,7 @@ check_sarif_requested() {
             return
         fi
     fi
-    
+
     # Check if output_path ends with .sarif
     if [[ -n "${output_path}" && "${output_path}" == *.sarif ]]; then
         echo "true"
@@ -26,7 +26,7 @@ check_sarif_requested() {
 
 prepare_report_formats_for_cli() {
     local report_formats="${INPUT_REPORT_FORMATS:-}"
-    
+
     # If sarif is requested, replace it with json for CLI execution
     if echo "${report_formats}" | grep -qw "sarif"; then
         # Replace 'sarif' with 'json', handle various combinations
@@ -35,13 +35,13 @@ prepare_report_formats_for_cli() {
         # Remove duplicate 'json' entries if they exist
         report_formats=$(echo "${report_formats}" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
     fi
-    
+
     echo "${report_formats}"
 }
 
 convert_json_to_sarif() {
     local output_path
-    
+
     if [ "$INPUT_SCAN_TYPE" = "iac" ]; then
         output_path="${INPUT_OUTPUT_PATH}"
     elif [ "$INPUT_SCAN_TYPE" = "image" ] && [ "$INPUT_OUTPUT_PATH" ]; then
@@ -54,9 +54,9 @@ convert_json_to_sarif() {
     else
         output_path="$HOME/.crowdstrike/image_assessment/reports/"
     fi
-    
+
     log "convert_json_to_sarif: Looking for JSON files in: $output_path"
-    
+
     # Look for all .json files - handle both file and directory paths
     local all_json_files
     if [[ -f "$output_path" && "$output_path" == *.json ]]; then
@@ -72,21 +72,21 @@ convert_json_to_sarif() {
         all_json_files=""
         log "convert_json_to_sarif: Path does not exist or is not a file/directory: $output_path" "WARN"
     fi
-    
+
     if [[ -n "$all_json_files" ]]; then
         log "convert_json_to_sarif: Found JSON files: $all_json_files"
         local success_count=0
         local total_count=0
-        
+
         while IFS= read -r json_file; do
             if [[ -n "$json_file" ]]; then
                 ((total_count++))
-                
+
                 # Generate SARIF filename
                 local sarif_file="${json_file%.json}.sarif"
-                
+
                 log "convert_json_to_sarif: Converting $json_file to $sarif_file"
-                
+
                 # Use the Python converter
                 if python3 "$GITHUB_WORKSPACE/json_to_sarif_converter.py" "$json_file" "$sarif_file" 2>/dev/null; then
                     ((success_count++))
@@ -96,7 +96,7 @@ convert_json_to_sarif() {
                 fi
             fi
         done <<< "$all_json_files"
-        
+
         log "convert_json_to_sarif: Successfully converted $success_count out of $total_count JSON files to SARIF"
     else
         log "convert_json_to_sarif: No JSON files found in $output_path" "WARN"
@@ -130,7 +130,7 @@ path_exists() {
 
 validate_path() {
     local scan_type="${INPUT_SCAN_TYPE:-iac}"
-    
+
     if [[ "$scan_type" == "iac" ]]; then
         # Check if INPUT_PATH or INPUT_CONFIG has been supplied for IaC scanning.
         local path="${INPUT_PATH:-}"
@@ -157,7 +157,7 @@ validate_path() {
         if [[ -z "$image" ]]; then
             die "The 'image' input is required for image scanning."
         fi
-        
+
         # If OUTPUT_PATH is provided for image scanning, validate file extension
         local output_path="${INPUT_OUTPUT_PATH:-}"
         if [[ -n "$output_path" ]]; then
@@ -196,7 +196,7 @@ validate_required_inputs() {
 set_parameters() {
     local -a params=()
     local scan_type="${INPUT_SCAN_TYPE:-iac}"
-    
+
     if [[ "$scan_type" == "iac" ]]; then
         # IaC-specific parameters
         local input_params=(
@@ -251,7 +251,6 @@ set_parameters() {
     elif [[ "$scan_type" == "image" ]]; then
         # Image-specific parameters
         local input_params=(
-            #"IMAGE:image"
             "SOCKET:socket"
             "PLATFORM:platform"
             "OUTPUT_PATH:output"
@@ -356,7 +355,7 @@ execute_fcs_cli() {
     cd "$GITHUB_WORKSPACE" || die "Failed to change directory to $GITHUB_WORKSPACE"
 
     log "Executing FCS CLI tool with scan type '$scan_type' and arguments: $args"
-    
+
     if [[ "$scan_type" == "iac" ]]; then
         # shellcheck disable=SC2086
         $FCS_CLI_BIN iac scan $args
@@ -366,7 +365,7 @@ execute_fcs_cli() {
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
-    
+
     local exit_code=$?
     echo "exit-code=$exit_code" >> "$GITHUB_OUTPUT"
 }
@@ -379,7 +378,7 @@ main() {
     local args
     args=$(set_parameters)
     execute_fcs_cli "$args"
-    
+
     # If SARIF format was requested, convert JSON output to SARIF using Python converter
     IS_SARIF=$(check_sarif_requested)
     if [[ "${IS_SARIF}" == "true" ]]; then
