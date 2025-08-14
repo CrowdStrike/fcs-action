@@ -98,7 +98,9 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     # Check for image scan indicators
     has_image_info = "ImageInfo" in scan_data
 
-    is_iac_scan = scan_type == "infrastructure_as_code" or ("violations" in scan_data and not has_image_info)
+    is_iac_scan = (scan_type == "infrastructure_as_code" or
+                   ("violations" in scan_data and not has_image_info) or
+                   ("rule_detections" in scan_data and not has_image_info))
 
     # Set description based on scan type
     if is_iac_scan:
@@ -155,7 +157,11 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Convert different types of findings based on scan type
     if is_iac_scan:
-        convert_iac_violations(scan_data, run)
+        # Handle both formats: violations (legacy) and rule_detections (newer)
+        if "violations" in scan_data:
+            convert_iac_violations(scan_data, run)
+        if "rule_detections" in scan_data:
+            convert_rule_detections(scan_data, run)
         convert_iac_secrets(scan_data, run)
         convert_iac_policy_violations(scan_data, run)
     else:
@@ -798,8 +804,86 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
         run["results"].append(result)
 
 
+def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
+    """Convert rule detection findings to SARIF results (newer IaC format)."""
+    rule_detections = scan_data.get("rule_detections", [])
+
+    for rule_detection in rule_detections:
+        rule_name = rule_detection.get('rule_name', 'Unknown Rule')
+        rule_uuid = rule_detection.get('rule_uuid', 'unknown')
+        rule_category = rule_detection.get('rule_category', 'General')
+        description = rule_detection.get('description', 'No description available')
+        severity = rule_detection.get('severity', 'Medium')
+        platform = rule_detection.get('platform', 'Generic')
+        cloud_provider = rule_detection.get('cloud_provider', 'General')
+        service = rule_detection.get('service', '')
+        rule_type = rule_detection.get('rule_type', '')
+
+        detections = rule_detection.get('detections', [])
+
+        for detection in detections:
+            # Create rule if not exists
+            rule_id = f"iac/{rule_uuid}"
+            add_rule_if_not_exists(run, rule_id, {
+                "id": rule_id,
+                "name": rule_name,
+                "shortDescription": {
+                    "text": rule_name
+                },
+                "fullDescription": {
+                    "text": description
+                },
+                "help": {
+                    "text": detection.get('recommendation', 'Review and fix the configuration issue'),
+                    "markdown": f"**Category:** {rule_category}\\n\\n**Platform:** {platform}\\n\\n**Cloud Provider:** {cloud_provider}\\n\\n**Recommendation:** {detection.get('recommendation', 'Review and fix the configuration issue')}"
+                },
+                "properties": {
+                    "tags": ["iac", "security", rule_category.lower().replace(' ', '_')],
+                    "precision": "high"
+                }
+            })
+
+            # Create result
+            result = {
+                "ruleId": rule_id,
+                "level": map_severity_to_level(severity),
+                "message": {
+                    "text": f"{rule_name}: {detection.get('reason', description)}"
+                },
+                "locations": [
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {
+                                "uri": detection.get('file', 'unknown')
+                            },
+                            "region": {
+                                "startLine": detection.get('line', 1)
+                            }
+                        }
+                    }
+                ],
+                "properties": filter_github_safe_properties({
+                    "rule_uuid": rule_uuid,
+                    "rule_category": rule_category,
+                    "platform": platform,
+                    "cloud_provider": cloud_provider,
+                    "service": service,
+                    "rule_type": rule_type,
+                    "file_path": detection.get('file'),
+                    "line_number": detection.get('line'),
+                    "file_sha256": detection.get('file_sha256'),
+                    "issue_type": detection.get('issue_type'),
+                    "reason": detection.get('reason'),
+                    "recommendation": detection.get('recommendation'),
+                    "resource_type": detection.get('resource_type'),
+                    "resource_name": detection.get('resource_name')
+                })
+            }
+
+            run["results"].append(result)
+
+
 def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
-    """Convert IaC policy violation findings to SARIF results."""
     violations = scan_data.get("policy_violations", [])
 
     for violation in violations:
