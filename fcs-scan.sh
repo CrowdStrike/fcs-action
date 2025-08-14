@@ -30,6 +30,7 @@ prepare_report_formats_for_cli() {
     # If sarif is requested, replace it with json for CLI execution
     if echo "${report_formats}" | grep -qw "sarif"; then
         # Replace 'sarif' with 'json', handle various combinations
+        # shellcheck disable=SC2001
         report_formats=$(echo "${report_formats}" | sed 's/sarif/json/g')
         # Remove duplicate 'json' entries if they exist
         report_formats=$(echo "${report_formats}" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
@@ -357,9 +358,9 @@ execute_fcs_cli() {
     log "Executing FCS CLI tool with scan type '$scan_type' and arguments: $args"
     
     if [[ "$scan_type" == "iac" ]]; then
-        $FCS_CLI_BIN iac scan $args
+        $FCS_CLI_BIN iac scan "$args"
     elif [[ "$scan_type" == "image" ]]; then
-        $FCS_CLI_BIN scan image $INPUT_IMAGE $args
+        $FCS_CLI_BIN scan image "$INPUT_IMAGE" "$args"
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
