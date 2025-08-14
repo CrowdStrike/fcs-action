@@ -1,0 +1,107 @@
+name: Test Vulnerable Docker Image Scan
+
+on:
+  push:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  test-vulnerable-image-scan:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build vulnerable Docker image
+        run: |
+          echo "Building vulnerable Docker image for testing..."
+          docker build -t vulnerable-test-image:latest tests/
+          echo "Image built successfully"
+          docker images vulnerable-test-image:latest
+
+      - name: Create scan results directory
+        run: mkdir -p vulnerable-image-scan-results
+
+      - name: Scan vulnerable Docker image with FCS CLI
+        uses: ./
+        with:
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
+          scan_type: image
+          image: vulnerable-test-image:latest
+          output_path: vulnerable-image-scan-results/vulnerable_image_scan_results.sarif
+          report_formats: sarif
+          minimum_severity: low
+        env:
+          FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+
+      - name: Display scan results summary
+        run: |
+          echo "=== Scan Results Summary ==="
+          echo "Files in scan results directory:"
+          ls -la vulnerable-image-scan-results/
+          
+          echo ""
+          echo "=== JSON Results Preview ==="
+          if [ -f vulnerable-image-scan-results/vulnerable_image_scan_results.json ]; then
+            echo "JSON file size: $(wc -c < vulnerable-image-scan-results/vulnerable_image_scan_results.json) bytes"
+            echo "First 1000 characters of JSON results:"
+            head -c 1000 vulnerable-image-scan-results/vulnerable_image_scan_results.json
+            echo "..."
+          else
+            echo "No JSON results file found"
+          fi
+          
+          echo ""
+          echo "=== SARIF Results Preview ==="
+          if ls vulnerable-image-scan-results/*.sarif 1> /dev/null 2>&1; then
+            for sarif_file in vulnerable-image-scan-results/*.sarif; do
+              echo "SARIF file: $sarif_file"
+              echo "File size: $(wc -c < "$sarif_file") bytes"
+              echo "Number of results:"
+              jq '.runs[0].results | length' "$sarif_file" 2>/dev/null || echo "Could not parse SARIF file"
+              echo "First few results (rule IDs):"
+              jq -r '.runs[0].results[0:5][] | .ruleId' "$sarif_file" 2>/dev/null || echo "Could not extract rule IDs"
+              echo "---"
+            done
+          else
+            echo "No SARIF files found"
+          fi
+
+      - name: Count vulnerabilities by severity
+        run: |
+          echo "=== Vulnerability Count by Severity ==="
+          if ls vulnerable-image-scan-results/*.sarif 1> /dev/null 2>&1; then
+            for sarif_file in vulnerable-image-scan-results/*.sarif; do
+              echo "Analyzing $sarif_file:"
+              echo "Critical: $(jq '[.runs[0].results[] | select(.level == "error")] | length' "$sarif_file" 2>/dev/null || echo "0")"
+              echo "High: $(jq '[.runs[0].results[] | select(.level == "warning")] | length' "$sarif_file" 2>/dev/null || echo "0")"
+              echo "Medium: $(jq '[.runs[0].results[] | select(.level == "note")] | length' "$sarif_file" 2>/dev/null || echo "0")"
+              echo "Total findings: $(jq '.runs[0].results | length' "$sarif_file" 2>/dev/null || echo "0")"
+            done
+          else
+            echo "No SARIF files to analyze"
+          fi
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('vulnerable-image-scan-results/*.sarif') != ''
+        with:
+          sarif_file: vulnerable-image-scan-results/
+
+      - name: Cleanup Docker image
+        if: always()
+        run: |
+          echo "Cleaning up vulnerable test image..."
+          docker rmi vulnerable-test-image:latest || echo "Image already removed or not found"
