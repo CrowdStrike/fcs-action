@@ -9,6 +9,22 @@ Ensures compliance with GitHub SARIF parsing requirements.
 
 import json
 from typing import Dict, Any
+from urllib.parse import quote
+
+
+def encode_uri_for_github(uri_string: str) -> str:
+    """
+    Encode a string to be a valid URI for GitHub Code Scanning.
+    
+    GitHub has strict URI validation - colons cannot appear in the first path segment.
+    This function URL-encodes problematic characters.
+    """
+    if not uri_string or uri_string == "unknown":
+        return uri_string
+    
+    # URL encode the entire string to handle colons and other special characters
+    # Use safe='' to encode everything, including '/' and ':'
+    return quote(uri_string, safe='')
 
 
 def filter_scan_data(scan_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -153,7 +169,7 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
                 "artifacts": [
                     {
                         "location": {
-                            "uri": artifact_uri
+                            "uri": encode_uri_for_github(artifact_uri)
                         },
                         "description": {
                             "text": artifact_desc
@@ -261,7 +277,7 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
                 {
                     "physicalLocation": {
                         "artifactLocation": {
-                            "uri": package_source
+                            "uri": encode_uri_for_github(package_source)
                         }
                     }
                 }
@@ -867,7 +883,7 @@ def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                     {
                         "physicalLocation": {
                             "artifactLocation": {
-                                "uri": detection.get('file', 'unknown')
+                                "uri": encode_uri_for_github(detection.get('file', 'unknown'))
                             },
                             "region": {
                                 "startLine": detection.get('line', 1)
