@@ -19,6 +19,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Download and execute script from internet (supply chain security risk)
+RUN curl -sSL https://get.docker.com/ | sh || true
+
 # Create sensitive files with secrets
 RUN mkdir -p /app && \
     echo "database_url=mysql://admin:password123@localhost/prod" > /app/.env && \
