@@ -1,6 +1,10 @@
 ---
 - name: Playbook to cause IaC scan failure
   hosts: all
+  vars:
+    db_password: "admin123"  # Hardcoded password
+    api_key: "AKIAIOSFODNN7EXAMPLE"  # AWS access key
+    secret_token: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"  # Secret key
   tasks:
     - name: Create an insecure user
       ansible.builtin.user:
@@ -26,3 +30,90 @@
               - Type: forward
                 TargetGroupName: targetname
         state: present
+
+    - name: Create S3 bucket with public access
+      amazon.aws.s3_bucket:
+        name: my-public-bucket
+        policy: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::my-public-bucket/*"
+              }
+            ]
+          }
+        public_access_block:
+          block_public_acls: false
+          block_public_policy: false
+          ignore_public_acls: false
+          restrict_public_buckets: false
+
+    - name: Create RDS instance without encryption
+      amazon.aws.rds_instance:
+        db_instance_identifier: test-db
+        db_instance_class: db.t3.micro
+        engine: mysql
+        master_username: admin
+        master_user_password: "{{ db_password }}"
+        allocated_storage: 20
+        storage_encrypted: false  # Unencrypted storage
+        publicly_accessible: true  # Public access
+        backup_retention_period: 0  # No backups
+        multi_az: false
+        deletion_protection: false
+
+    - name: Create security group with overly permissive rules
+      amazon.aws.ec2_security_group:
+        name: insecure-sg
+        description: Security group with wide open access
+        rules:
+          - proto: tcp
+            ports:
+              - 22
+              - 3389
+              - 80
+              - 443
+            cidr_ip: "0.0.0.0/0"  # Open to the world
+            rule_desc: "Allow all traffic"
+          - proto: all
+            cidr_ip: "0.0.0.0/0"  # All protocols open
+
+    - name: Create EC2 instance with IMDSv1
+      amazon.aws.ec2_instance:
+        name: test-instance
+        image_id: ami-12345678
+        instance_type: t3.micro
+        security_groups:
+          - insecure-sg
+        metadata_options:
+          http_tokens: optional  # IMDSv1 enabled (insecure)
+          http_put_response_hop_limit: 3
+        user_data: |
+          #!/bin/bash
+          echo "root:password123" | chpasswd  # Hardcoded root password
+
+    - name: Create Lambda function with admin permissions
+      amazon.aws.lambda_function:
+        name: overprivileged-lambda
+        runtime: python3.9
+        role: arn:aws:iam::123456789012:role/lambda-admin-role
+        handler: index.handler
+        code:
+          ZipFile: |
+            def handler(event, context):
+                # Access key embedded in code
+                aws_access_key = "AKIAIOSFODNN7EXAMPLE"
+                return {'statusCode': 200}
+        environment_variables:
+          SECRET_KEY: "my-secret-key-123"  # Hardcoded secret
+
+    - name: Create unencrypted EBS volume
+      amazon.aws.ec2_vol:
+        instance: test-instance
+        volume_size: 10
+        encrypted: false  # Unencrypted volume
+        snapshot: false

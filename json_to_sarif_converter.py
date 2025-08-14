@@ -2,12 +2,29 @@
 # pylint: disable=C0301,W1514
 # flake8: noqa: E501
 """
-Convert FCS container image scan JSON report to SARIF 2.1.0 format.
+Convert FCS scan JSON report to SARIF 2.1.0 format.
+Supports both container image scans and Infrastructure as Code scans.
 Ensures compliance with GitHub SARIF parsing requirements.
 """
 
 import json
 from typing import Dict, Any
+from urllib.parse import quote
+
+
+def encode_uri_for_github(uri_string: str) -> str:
+    """
+    Encode a string to be a valid URI for GitHub Code Scanning.
+    
+    GitHub has strict URI validation - colons cannot appear in the first path segment.
+    This function URL-encodes problematic characters.
+    """
+    if not uri_string or uri_string == "unknown":
+        return uri_string
+    
+    # URL encode the entire string to handle colons and other special characters
+    # Use safe='' to encode everything, including '/' and ':'
+    return quote(uri_string, safe='')
 
 
 def filter_scan_data(scan_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -98,13 +115,15 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     # Check for image scan indicators
     has_image_info = "ImageInfo" in scan_data
 
-    is_iac_scan = scan_type == "infrastructure_as_code" or ("violations" in scan_data and not has_image_info)
+    is_iac_scan = (scan_type == "infrastructure_as_code" or
+                   ("violations" in scan_data and not has_image_info) or
+                   ("rule_detections" in scan_data and not has_image_info))
 
     # Set description based on scan type
     if is_iac_scan:
         short_desc = "Infrastructure as Code security scanner"
         full_desc = "Comprehensive security scanning for Infrastructure as Code including compliance checking, misconfiguration detection, secret scanning, and policy validation."
-        artifact_desc = f"IaC Repository: {scan_data.get('repository_details', {}).get('name', 'unknown')}"
+        artifact_desc = f"IaC Repository: {scan_data.get('repository_details', {}).get('name') or scan_data.get('path', 'unknown')}"
     else:
         short_desc = "Container image security scanner"
         full_desc = "Comprehensive security scanning for container images including vulnerability detection, secret scanning, malware detection, and misconfiguration analysis."
@@ -114,6 +133,17 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
 
         artifact_desc = f"Container image: {full_image_name}"
 
+    # Set artifact URI based on scan type
+    if is_iac_scan:
+        artifact_uri = scan_data.get('repository_details', {}).get('name') or scan_data.get('path', 'iac-scan')
+    else:
+        # Image scan - use extracted image name
+        extracted_image_name = scan_data.get('_extracted_image_name', 'unknown')
+        if extracted_image_name != 'unknown':
+            artifact_uri = extracted_image_name
+        else:
+            artifact_uri = "container-image"
+
     # Create base SARIF structure
     sarif_report = {
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
@@ -122,8 +152,8 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
             {
                 "tool": {
                     "driver": {
-                        "name": "CrowdStrike Falcon Cloud Security",
-                        "version": scan_data.get("scanner_version", "unknown"),
+                        "name": "CrowdStrike FCS",
+                        "version": scan_data.get("scanner_version") or scan_data.get("fcs_version", "1.0.0"),
                         "informationUri": "https://crowdstrike.com",
                         "organization": "CrowdStrike",
                         "shortDescription": {
@@ -139,7 +169,7 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
                 "artifacts": [
                     {
                         "location": {
-                            "uri": "unknown"
+                            "uri": encode_uri_for_github(artifact_uri)
                         },
                         "description": {
                             "text": artifact_desc
@@ -155,7 +185,11 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Convert different types of findings based on scan type
     if is_iac_scan:
-        convert_iac_violations(scan_data, run)
+        # Handle both formats: violations (legacy) and rule_detections (newer)
+        if "violations" in scan_data:
+            convert_iac_violations(scan_data, run)
+        if "rule_detections" in scan_data:
+            convert_rule_detections(scan_data, run)
         convert_iac_secrets(scan_data, run)
         convert_iac_policy_violations(scan_data, run)
     else:
@@ -207,7 +241,8 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
             fixed_versions = []
         fixed_version = fixed_versions[0] if fixed_versions and len(fixed_versions) > 0 else "Not available"
 
-        # Extract layer information
+        # Extract package source/path information
+        package_source = product.get("PackageSource", product_name) if isinstance(product, dict) else product_name
         layer_hash = vuln.get("LayerHash", "") if vuln else ""
 
         # Create rule if not exists
@@ -242,7 +277,7 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
                 {
                     "physicalLocation": {
                         "artifactLocation": {
-                            "uri": "unknown"
+                            "uri": encode_uri_for_github(package_source)
                         }
                     }
                 }
@@ -796,6 +831,85 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
         }
 
         run["results"].append(result)
+
+
+def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
+    """Convert rule detection findings to SARIF results (newer IaC format)."""
+    rule_detections = scan_data.get("rule_detections", [])
+
+    for rule_detection in rule_detections:
+        rule_name = rule_detection.get('rule_name', 'Unknown Rule')
+        rule_uuid = rule_detection.get('rule_uuid', 'unknown')
+        rule_category = rule_detection.get('rule_category', 'General')
+        description = rule_detection.get('description', 'No description available')
+        severity = rule_detection.get('severity', 'Medium')
+        platform = rule_detection.get('platform', 'Generic')
+        cloud_provider = rule_detection.get('cloud_provider', 'General')
+        service = rule_detection.get('service', '')
+        rule_type = rule_detection.get('rule_type', '')
+
+        detections = rule_detection.get('detections', [])
+
+        for detection in detections:
+            # Create rule if not exists
+            rule_id = f"iac/{rule_uuid}"
+            add_rule_if_not_exists(run, rule_id, {
+                "id": rule_id,
+                "name": rule_name,
+                "shortDescription": {
+                    "text": rule_name
+                },
+                "fullDescription": {
+                    "text": description
+                },
+                "help": {
+                    "text": detection.get('recommendation', 'Review and fix the configuration issue'),
+                    "markdown": f"**Category:** {rule_category}\\n\\n**Platform:** {platform}\\n\\n**Cloud Provider:** {cloud_provider}\\n\\n**Recommendation:** {detection.get('recommendation', 'Review and fix the configuration issue')}"
+                },
+                "properties": {
+                    "tags": ["iac", "security", rule_category.lower().replace(' ', '_')],
+                    "precision": "high"
+                }
+            })
+
+            # Create result
+            result = {
+                "ruleId": rule_id,
+                "level": map_severity_to_level(severity),
+                "message": {
+                    "text": f"{rule_name}: {detection.get('reason', description)}"
+                },
+                "locations": [
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {
+                                "uri": encode_uri_for_github(detection.get('file', 'unknown'))
+                            },
+                            "region": {
+                                "startLine": detection.get('line', 1)
+                            }
+                        }
+                    }
+                ],
+                "properties": filter_github_safe_properties({
+                    "rule_uuid": rule_uuid,
+                    "rule_category": rule_category,
+                    "platform": platform,
+                    "cloud_provider": cloud_provider,
+                    "service": service,
+                    "rule_type": rule_type,
+                    "file_path": detection.get('file'),
+                    "line_number": detection.get('line'),
+                    "file_sha256": detection.get('file_sha256'),
+                    "issue_type": detection.get('issue_type'),
+                    "reason": detection.get('reason'),
+                    "recommendation": detection.get('recommendation'),
+                    "resource_type": detection.get('resource_type'),
+                    "resource_name": detection.get('resource_name')
+                })
+            }
+
+            run["results"].append(result)
 
 
 def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
