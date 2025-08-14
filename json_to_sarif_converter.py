@@ -1,63 +1,64 @@
 #!/usr/bin/env python3
+# pylint: disable=C0301,W1514
+# flake8: noqa: E501
 """
 Convert FCS container image scan JSON report to SARIF 2.1.0 format.
 Ensures compliance with GitHub SARIF parsing requirements.
 """
 
 import json
-import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any
 
 
 def filter_scan_data(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Filter out top-level sections from scan data that cause GitHub upload failures.
-    
+
     Args:
         scan_data: Original scan data dictionary
-        
+
     Returns:
         Filtered scan data dictionary
     """
     # Top-level sections that cause GitHub upload failures
     excluded_sections = {
-        'ImageInfo', 'ConfigInfo', 'OSInfo', 'InventoryEngineInfo', 
-        'Manifest', 'Config', 'imageinfo', 'configinfo', 'osinfo', 
+        'ImageInfo', 'ConfigInfo', 'OSInfo', 'InventoryEngineInfo',
+        'Manifest', 'Config', 'imageinfo', 'configinfo', 'osinfo',
         'inventoryengineinfo', 'manifest', 'config'
     }
-    
+
     # Create filtered scan data
     filtered_data = {}
     for key, value in scan_data.items():
         if key not in excluded_sections:
             filtered_data[key] = value
-    
+
     return filtered_data
 
 
 def convert_json_to_sarif(json_file_path: str, output_sarif_path: str) -> None:
     """
     Convert FCS JSON scan report to SARIF 2.1.0 format.
-    
+
     Args:
         json_file_path: Path to the input JSON file
         output_sarif_path: Path where SARIF file will be written
     """
     with open(json_file_path, 'r') as f:
         scan_data = json.load(f)
-    
+
     # Extract image name before filtering (since ImageInfo gets filtered out)
     image_name = extract_image_name(scan_data)
-    
+
     # Filter out problematic top-level sections
     filtered_scan_data = filter_scan_data(scan_data)
-    
+
     # Add the extracted image name back to filtered data
     if image_name != "unknown":
         filtered_scan_data['_extracted_image_name'] = image_name
-    
+
     sarif_report = create_sarif_report(filtered_scan_data)
-    
+
     with open(output_sarif_path, 'w') as f:
         json.dump(sarif_report, f, indent=2, sort_keys=True)
 
@@ -73,12 +74,11 @@ def extract_image_name(scan_data: Dict[str, Any]) -> str:
             if registry == 'index.docker.io':
                 # Docker Hub shorthand
                 return f"{repository}:{tag}"
-            else:
-                return f"{registry}/{repository}:{tag}"
-        elif repository and tag:
+            return f"{registry}/{repository}:{tag}"
+        if repository and tag:
             # Handle case where registry might be empty but repo and tag exist
             return f"{repository}:{tag}"
-    
+
     # Fallback to legacy format
     return scan_data.get('image_details', {}).get('full_image_name', 'unknown')
 
@@ -86,10 +86,10 @@ def extract_image_name(scan_data: Dict[str, Any]) -> str:
 def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Create SARIF 2.1.0 compliant report from scan data.
-    
+
     Args:
         scan_data: Parsed JSON scan data
-        
+
     Returns:
         SARIF report dictionary
     """
@@ -97,12 +97,9 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     scan_type = scan_data.get("scan_type", "")
     # Check for image scan indicators
     has_image_info = "ImageInfo" in scan_data
-    has_vulnerabilities = "Vulnerabilities" in scan_data
-    has_detections = "Detections" in scan_data
-    
+
     is_iac_scan = scan_type == "infrastructure_as_code" or ("violations" in scan_data and not has_image_info)
-    is_image_scan = scan_type == "container_image" or has_image_info or has_vulnerabilities or has_detections
-    
+
     # Set description based on scan type
     if is_iac_scan:
         short_desc = "Infrastructure as Code security scanner"
@@ -111,12 +108,12 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     else:
         short_desc = "Container image security scanner"
         full_desc = "Comprehensive security scanning for container images including vulnerability detection, secret scanning, malware detection, and misconfiguration analysis."
-        
+
         # Use extracted image name if available, otherwise fallback to legacy method
         full_image_name = scan_data.get('_extracted_image_name', scan_data.get('image_details', {}).get('full_image_name', 'unknown'))
-        
+
         artifact_desc = f"Container image: {full_image_name}"
-    
+
     # Create base SARIF structure
     sarif_report = {
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
@@ -152,10 +149,10 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
             }
         ]
     }
-    
+
     # Get the run object for easier access
     run = sarif_report["runs"][0]
-    
+
     # Convert different types of findings based on scan type
     if is_iac_scan:
         convert_iac_violations(scan_data, run)
@@ -168,32 +165,32 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
         convert_malware(scan_data, run)  # Optional - may not be present
         convert_image_detections(scan_data, run)  # Process Detections array
         convert_policy_response(scan_data, run)  # Process PolicyResponse
-    
+
     return sarif_report
 
 
-def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
+def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:  # pylint: disable=R0914
     """Convert image vulnerability findings to SARIF results."""
     vulnerabilities = scan_data.get("Vulnerabilities", [])
-    
+
     for vuln_item in vulnerabilities:
         if vuln_item is None:
             continue
-            
+
         vuln = vuln_item.get("Vulnerability", {}) if isinstance(vuln_item, dict) else {}
         if vuln is None:
             vuln = {}
-        
+
         # Extract CVE ID
         cve_id = vuln.get("CVEID", "unknown") if vuln else "unknown"
-        
+
         # Extract product information
         product = vuln.get("Product", {}) if vuln else {}
         if product is None:
             product = {}
         product_name = product.get("Product", "unknown") if isinstance(product, dict) else "unknown"
         product_version = product.get("MajorVersion", "unknown") if isinstance(product, dict) else "unknown"
-        
+
         # Extract vulnerability details
         details = vuln.get("Details", {}) if vuln else {}
         if details is None:
@@ -203,16 +200,16 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
         base_score = details.get("base_score", 0) if isinstance(details, dict) else 0
         vector = details.get("vector", "") if isinstance(details, dict) else ""
         published_date = details.get("published_date", "") if isinstance(details, dict) else ""
-        
+
         # Extract fixed versions
         fixed_versions = vuln.get("FixedVersions", []) if vuln else []
         if fixed_versions is None:
             fixed_versions = []
         fixed_version = fixed_versions[0] if fixed_versions and len(fixed_versions) > 0 else "Not available"
-        
+
         # Extract layer information
         layer_hash = vuln.get("LayerHash", "") if vuln else ""
-        
+
         # Create rule if not exists
         rule_id = f"vulnerability/{cve_id}"
         add_rule_if_not_exists(run, rule_id, {
@@ -233,7 +230,7 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
                 "precision": "high"
             }
         })
-        
+
         # Create result
         result = {
             "ruleId": rule_id,
@@ -264,14 +261,14 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
                 "platform_type": product.get("PlatformType", "")
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert vulnerability findings to SARIF results (legacy format)."""
     vulnerabilities = scan_data.get("vulnerabilities", [])
-    
+
     for vuln in vulnerabilities:
         # Create rule if not exists
         rule_id = f"vulnerability/{vuln.get('cve_id', 'unknown')}"
@@ -293,7 +290,7 @@ def convert_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 "precision": "high"
             }
         })
-        
+
         # Create result
         result = {
             "ruleId": rule_id,
@@ -321,26 +318,26 @@ def convert_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 "references": vuln.get('references', [])
             })
         }
-        
+
         run["results"].append(result)
 
 
-def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
+def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:  # pylint: disable=R0914
     """Convert image detection findings to SARIF results."""
     detections = scan_data.get("Detections", [])
-    
+
     # Handle case where Detections is explicitly set to null (e.g., with --vulnerabilities-only)
     if detections is None:
         detections = []
-    
+
     for detection_item in detections:
         if detection_item is None:
             continue
-            
+
         detection = detection_item.get("Detection", {}) if isinstance(detection_item, dict) else {}
         if detection is None:
             detection = {}
-        
+
         # Extract detection information
         detection_id = detection.get("ID", "unknown") if isinstance(detection, dict) else "unknown"
         detection_type = detection.get("Type", "unknown") if isinstance(detection, dict) else "unknown"
@@ -352,10 +349,10 @@ def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> 
         details = detection.get("Details", {}) if isinstance(detection, dict) else {}
         if details is None:
             details = {}
-        
+
         # Create rule ID based on type and name
         rule_id = f"{detection_type.lower()}/{detection_name}"
-        
+
         # Set tags based on detection type
         tags = ["security"]
         if detection_type.lower() == "misconfiguration":
@@ -364,7 +361,7 @@ def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> 
             tags.extend(["cis", "compliance", "benchmark"])
         else:
             tags.append(detection_type.lower())
-        
+
         add_rule_if_not_exists(run, rule_id, {
             "id": rule_id,
             "name": title,
@@ -383,7 +380,7 @@ def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> 
                 "precision": "high"
             }
         })
-        
+
         # Create result
         result = {
             "ruleId": rule_id,
@@ -409,27 +406,27 @@ def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> 
                 "severity": severity
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_policy_response(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert policy response to SARIF results."""
     policy_response = scan_data.get("PolicyResponse", {})
-    
+
     if not policy_response:
         return
-    
+
     policy = policy_response.get("policy", {})
     policy_type = policy_response.get("policy_type", {})
     image = policy_response.get("image", {})
     deny = policy_response.get("deny", False)
     evaluated_at = policy_response.get("evaluated_at", "")
-    
+
     # Only create a result if there's meaningful policy information
     if policy and (deny or policy.get("name")):
         rule_id = f"policy/{policy.get('uuid', 'unknown')}"
-        
+
         add_rule_if_not_exists(run, rule_id, {
             "id": rule_id,
             "name": f"Policy Evaluation: {policy.get('name', 'Unknown Policy')}",
@@ -444,14 +441,14 @@ def convert_policy_response(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 "precision": "high"
             }
         })
-        
+
         # Determine level based on deny status
         level = "error" if deny else "note"
-        
+
         # Build message
         status = "DENIED" if deny else "ALLOWED"
         message = f"Policy '{policy.get('name', 'Unknown')}' evaluation: {status}"
-        
+
         result = {
             "ruleId": rule_id,
             "level": level,
@@ -482,14 +479,14 @@ def convert_policy_response(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 "image_digest": image.get("image_digest")
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert secret findings to SARIF results."""
     secrets = scan_data.get("secrets", [])
-    
+
     for secret in secrets:
         rule_id = f"secret/{secret.get('type', 'unknown')}"
         add_rule_if_not_exists(run, rule_id, {
@@ -506,7 +503,7 @@ def convert_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
                 "precision": "high"
             }
         })
-        
+
         result = {
             "ruleId": rule_id,
             "level": map_severity_to_level(secret.get('severity', 'high')),
@@ -530,14 +527,14 @@ def convert_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
                 "entropy_score": secret.get('entropy_score')
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_malware(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert malware findings to SARIF results."""
     malware_list = scan_data.get("malware", [])
-    
+
     for malware in malware_list:
         rule_id = f"malware/{malware.get('type', 'unknown')}"
         add_rule_if_not_exists(run, rule_id, {
@@ -554,7 +551,7 @@ def convert_malware(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
                 "precision": "high"
             }
         })
-        
+
         result = {
             "ruleId": rule_id,
             "level": "error",  # Malware is always critical
@@ -578,14 +575,14 @@ def convert_malware(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
                 "confidence": malware.get('confidence')
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_misconfigurations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert misconfiguration findings to SARIF results."""
     misconfigs = scan_data.get("misconfigurations", [])
-    
+
     for config in misconfigs:
         rule_id = f"misconfiguration/{config.get('rule_id', 'unknown')}"
         add_rule_if_not_exists(run, rule_id, {
@@ -605,7 +602,7 @@ def convert_misconfigurations(scan_data: Dict[str, Any], run: Dict[str, Any]) ->
                 "precision": "high"
             }
         })
-        
+
         result = {
             "ruleId": rule_id,
             "level": map_severity_to_level(config.get('severity', 'medium')),
@@ -629,14 +626,14 @@ def convert_misconfigurations(scan_data: Dict[str, Any], run: Dict[str, Any]) ->
                 "remediation": config.get('remediation')
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert policy violation findings to SARIF results."""
     violations = scan_data.get("policy_violations", [])
-    
+
     for violation in violations:
         rule_id = f"policy/{violation.get('policy_id', 'unknown')}"
         add_rule_if_not_exists(run, rule_id, {
@@ -653,7 +650,7 @@ def convert_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) ->
                 "precision": "high"
             }
         })
-        
+
         result = {
             "ruleId": rule_id,
             "level": map_severity_to_level(violation.get('severity', 'high')),
@@ -676,14 +673,14 @@ def convert_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) ->
                 "action": violation.get('action')
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_iac_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert IaC violation findings to SARIF results."""
     violations = scan_data.get("violations", [])
-    
+
     for violation in violations:
         # Create rule if not exists
         rule_id = f"iac/{violation.get('check_id', 'unknown')}"
@@ -705,11 +702,11 @@ def convert_iac_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> No
                 "precision": "high"
             }
         })
-        
+
         # Create result
         file_details = violation.get('file_details', {})
         resource_details = violation.get('resource_details', {})
-        
+
         result = {
             "ruleId": rule_id,
             "level": map_severity_to_level(violation.get('severity', 'medium')),
@@ -744,7 +741,7 @@ def convert_iac_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> No
                 "compliance_mappings": violation.get('compliance_mappings', [])
             })
         }
-        
+
         run["results"].append(result)
 
 
@@ -752,7 +749,7 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert IaC secret findings to SARIF results."""
     secrets_analysis = scan_data.get("secrets_analysis", {})
     secrets = secrets_analysis.get("secrets", [])
-    
+
     for secret in secrets:
         rule_id = f"secret/{secret.get('type', 'unknown')}"
         add_rule_if_not_exists(run, rule_id, {
@@ -772,7 +769,7 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
                 "precision": "high"
             }
         })
-        
+
         result = {
             "ruleId": rule_id,
             "level": "error",  # Secrets in IaC are always high severity
@@ -797,14 +794,14 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
                 "remediation": secret.get('remediation')
             })
         }
-        
+
         run["results"].append(result)
 
 
 def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert IaC policy violation findings to SARIF results."""
     violations = scan_data.get("policy_violations", [])
-    
+
     for violation in violations:
         rule_id = f"policy/{violation.get('policy_id', 'unknown')}"
         add_rule_if_not_exists(run, rule_id, {
@@ -821,7 +818,7 @@ def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]
                 "precision": "high"
             }
         })
-        
+
         result = {
             "ruleId": rule_id,
             "level": map_severity_to_level("medium"),  # Policy violations are typically medium
@@ -845,51 +842,50 @@ def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]
                 "enforcement_level": violation.get('enforcement_level')
             })
         }
-        
+
         run["results"].append(result)
 
 
 def map_severity_to_level(severity: str) -> str:
     """
     Map severity strings to SARIF level values according to GitHub standards.
-    
+
     Args:
         severity: Severity string from scan data
-        
+
     Returns:
         SARIF level: "error", "warning", "note", or "none"
     """
     severity_lower = severity.lower() if severity else "medium"
-    
+
     if severity_lower in ["critical", "high"]:
         return "error"
-    elif severity_lower in ["medium", "moderate"]:
+    if severity_lower in ["medium", "moderate"]:
         return "warning"
-    elif severity_lower in ["low", "info", "information", "negligible"]:
+    if severity_lower in ["low", "info", "information", "negligible"]:
         return "note"
-    elif severity_lower in ["none", "unknown"]:
+    if severity_lower in ["none", "unknown"]:
         return "none"
-    else:
-        return "note"  # Default fallback
+    return "note"  # Default fallback
 
 
 def filter_github_safe_properties(properties: Dict[str, Any]) -> Dict[str, Any]:
     """
     Filter properties to only include those safe for GitHub SARIF upload.
-    
+
     Args:
         properties: Original properties dictionary
-        
+
     Returns:
         Filtered properties dictionary with only GitHub-safe properties
     """
     # Properties that are known to cause GitHub upload failures
     excluded_properties = {
-        'imageinfo', 'configinfo', 'osinfo', 'inventoryengineinfo', 
+        'imageinfo', 'configinfo', 'osinfo', 'inventoryengineinfo',
         'manifest', 'config', 'instance', 'image_details', 'container_info',
         'system_info', 'engine_info', 'scan_metadata', 'environment_info'
     }
-    
+
     # Only keep safe properties
     safe_properties = {}
     for key, value in properties.items():
@@ -897,40 +893,40 @@ def filter_github_safe_properties(properties: Dict[str, Any]) -> Dict[str, Any]:
             # Skip null/empty values
             if value is not None and value != "":
                 safe_properties[key] = value
-    
+
     return safe_properties
 
 
 def add_rule_if_not_exists(run: Dict[str, Any], rule_id: str, rule_definition: Dict[str, Any]) -> None:
     """
     Add a rule to the SARIF run if it doesn't already exist.
-    
+
     Args:
         run: SARIF run object
         rule_id: Rule identifier
         rule_definition: Rule definition dictionary
     """
     existing_rule_ids = {rule.get("id") for rule in run["tool"]["driver"]["rules"]}
-    
+
     if rule_id not in existing_rule_ids:
         run["tool"]["driver"]["rules"].append(rule_definition)
 
 
 def main():
     """Example usage of the converter."""
-    import sys
-    
+    import sys  # pylint: disable=C0415
+
     if len(sys.argv) != 3:
         print("Usage: python json_to_sarif_converter.py <input.json> <output.sarif>")
         sys.exit(1)
-    
+
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-    
+
     try:
         convert_json_to_sarif(input_file, output_file)
         print(f"Successfully converted {input_file} to {output_file}")
-    except Exception as e:
+    except Exception as e:  # pylint: disable=W0718
         print(f"Error converting file: {e}")
         sys.exit(1)
 
