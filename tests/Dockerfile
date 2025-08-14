@@ -7,18 +7,17 @@ MAINTAINER test@example.com
 # Run as root user (security risk)
 USER root
 
-# Install packages without updating package lists first
-RUN apt-get install -y \
-    # Install old versions with known CVEs
-    curl=7.58.0-2ubuntu3.16 \
-    wget=1.19.4-1ubuntu2.2 \
-    openssh-server=1:7.6p1-4ubuntu0.6 \
-    apache2=2.4.29-1ubuntu4.21 \
-    mysql-server=5.7.37-0ubuntu0.18.04.1 \
+# Install packages (security risk: not updating first, installing vulnerable versions)
+RUN apt-get update && apt-get install -y \
+    # Install potentially vulnerable packages
+    curl \
+    wget \
+    openssh-server \
+    apache2 \
+    mysql-server \
     # Install unnecessary packages
     telnet \
     ftp \
-    rsh-server \
     # Install packages with --allow-unauthenticated (insecure)
     && apt-get install -y --allow-unauthenticated some-package || true
 
@@ -69,14 +68,14 @@ RUN echo "-- Database backup with sensitive data - DO NOT USE IN PRODUCTION" > /
     echo "-- Production database password: prod_db_pass_2024!" >> /tmp/database_backup.sql && \
     echo "-- Admin panel: https://admin.company.com (admin/secret123)" >> /tmp/database_backup.sql
 
-# Install pip packages with known vulnerabilities
+# Install pip packages with potentially vulnerable versions (insecure: --trusted-host)
 RUN apt-get install -y python3-pip && \
     pip3 install --trusted-host pypi.org --trusted-host pypi.python.org \
-    Django==1.11.29 \
-    Pillow==6.2.2 \
-    requests==2.20.0 \
-    pyyaml==5.1 \
-    jinja2==2.10.1
+    Django==2.2.0 \
+    Pillow==7.1.0 \
+    requests==2.22.0 \
+    pyyaml==5.3.1 \
+    jinja2==2.11.0 || echo "Some packages may have failed to install"
 
 # Expose unnecessary ports
 EXPOSE 22 23 25 53 80 135 139 443 445 993 995 1433 3306 3389 5432 5900
@@ -87,13 +86,13 @@ RUN curl -sSL https://get.docker.com/ | sh || true
 # Add vulnerable Node.js application
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g express@4.16.0 lodash@4.17.4 moment@2.19.3
+    npm install -g express@4.16.0 lodash@4.17.4 moment@2.19.3 || echo "Some npm packages may have failed"
 
 # Create directory with world-writable permissions  
 RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 
-# Install vulnerable Java version
-RUN apt-get install -y openjdk-8-jdk=8u292-b10-0ubuntu1~18.04
+# Install Java (potentially vulnerable version available in Ubuntu 18.04)
+RUN apt-get install -y openjdk-8-jdk || apt-get install -y default-jdk
 
 # Configure SSH with insecure settings
 RUN mkdir -p /var/run/sshd && \
