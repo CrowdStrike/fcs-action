@@ -358,9 +358,11 @@ execute_fcs_cli() {
     log "Executing FCS CLI tool with scan type '$scan_type' and arguments: $args"
     
     if [[ "$scan_type" == "iac" ]]; then
-        $FCS_CLI_BIN iac scan "$args"
+        # shellcheck disable=SC2086
+        $FCS_CLI_BIN iac scan $args
     elif [[ "$scan_type" == "image" ]]; then
-        $FCS_CLI_BIN scan image "$INPUT_IMAGE" "$args"
+        # shellcheck disable=SC2086
+        $FCS_CLI_BIN scan image $INPUT_IMAGE $args
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
