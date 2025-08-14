@@ -117,6 +117,17 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
 
         artifact_desc = f"Container image: {full_image_name}"
 
+    # Set artifact URI based on scan type
+    if is_iac_scan:
+        artifact_uri = scan_data.get('repository_details', {}).get('name') or scan_data.get('path', 'iac-scan')
+    else:
+        # Image scan - use extracted image name
+        extracted_image_name = scan_data.get('_extracted_image_name', 'unknown')
+        if extracted_image_name != 'unknown':
+            artifact_uri = extracted_image_name
+        else:
+            artifact_uri = "container-image"
+
     # Create base SARIF structure
     sarif_report = {
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
@@ -142,7 +153,7 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
                 "artifacts": [
                     {
                         "location": {
-                            "uri": "unknown"
+                            "uri": artifact_uri
                         },
                         "description": {
                             "text": artifact_desc
@@ -214,7 +225,8 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
             fixed_versions = []
         fixed_version = fixed_versions[0] if fixed_versions and len(fixed_versions) > 0 else "Not available"
 
-        # Extract layer information
+        # Extract package source/path information
+        package_source = product.get("PackageSource", product_name) if isinstance(product, dict) else product_name
         layer_hash = vuln.get("LayerHash", "") if vuln else ""
 
         # Create rule if not exists
@@ -249,7 +261,7 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
                 {
                     "physicalLocation": {
                         "artifactLocation": {
-                            "uri": "unknown"
+                            "uri": package_source
                         }
                     }
                 }
