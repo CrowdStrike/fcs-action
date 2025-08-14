@@ -2,7 +2,8 @@
 # pylint: disable=C0301,W1514
 # flake8: noqa: E501
 """
-Convert FCS container image scan JSON report to SARIF 2.1.0 format.
+Convert FCS scan JSON report to SARIF 2.1.0 format.
+Supports both container image scans and Infrastructure as Code scans.
 Ensures compliance with GitHub SARIF parsing requirements.
 """
 
@@ -106,7 +107,7 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
     if is_iac_scan:
         short_desc = "Infrastructure as Code security scanner"
         full_desc = "Comprehensive security scanning for Infrastructure as Code including compliance checking, misconfiguration detection, secret scanning, and policy validation."
-        artifact_desc = f"IaC Repository: {scan_data.get('repository_details', {}).get('name', 'unknown')}"
+        artifact_desc = f"IaC Repository: {scan_data.get('repository_details', {}).get('name') or scan_data.get('path', 'unknown')}"
     else:
         short_desc = "Container image security scanner"
         full_desc = "Comprehensive security scanning for container images including vulnerability detection, secret scanning, malware detection, and misconfiguration analysis."
@@ -124,8 +125,8 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
             {
                 "tool": {
                     "driver": {
-                        "name": "CrowdStrike Falcon Cloud Security",
-                        "version": scan_data.get("scanner_version", "unknown"),
+                        "name": "CrowdStrike FCS",
+                        "version": scan_data.get("scanner_version") or scan_data.get("fcs_version", "1.0.0"),
                         "informationUri": "https://crowdstrike.com",
                         "organization": "CrowdStrike",
                         "shortDescription": {
@@ -884,6 +885,7 @@ def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
 
 
 def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
+    """Convert IaC policy violation findings to SARIF results."""
     violations = scan_data.get("policy_violations", [])
 
     for violation in violations:
