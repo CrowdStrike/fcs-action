@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/CrowdStrike/fcs-action/compare/v1.1.0...v2.0.0) (2025-08-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* Latest FCS CLI with Image Assessment ([#29](https://github.com/CrowdStrike/fcs-action/issues/29))
+
+### Features
+
+* Latest FCS CLI with Image Assessment ([#29](https://github.com/CrowdStrike/fcs-action/issues/29)) ([82645d0](https://github.com/CrowdStrike/fcs-action/commit/82645d07dbb863638742b5991c2a47570bc810a8))
+
+
+### Bug Fixes
+
+* updated sarif to fix iac and uri concerns ([#31](https://github.com/CrowdStrike/fcs-action/issues/31)) ([6111f24](https://github.com/CrowdStrike/fcs-action/commit/6111f24173e6b06347c7551a6394665eade88dd5))
+
 ## [1.1.0](https://github.com/CrowdStrike/fcs-action/compare/v1.0.6...v1.1.0) (2025-05-16)
 
 
