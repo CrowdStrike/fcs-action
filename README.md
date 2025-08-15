@@ -56,59 +56,147 @@ To use this action in your workflow, add the following step:
 
 ## Environment Variables
 
-| Variable               | Description                                      | Required | Default | Example/Allowed Values                |
-| ---------------------- | ------------------------------------------------ | -------- | ------- | ------------------------------------- |
-| `FALCON_CLIENT_SECRET` | CrowdStrike API Client Secret for authentication | **Yes**  | -       | `${{ secrets.FALCON_CLIENT_SECRET }}` |
+| Variable | Description | Required | Default | Example |
+| -------- | ----------- | -------- | ------- | ------- |
+| `FALCON_CLIENT_SECRET` | CrowdStrike API Client Secret | **Yes** | - | `${{ secrets.FALCON_CLIENT_SECRET }}` |
 
 ## Inputs
 
-| Input                           | Description                                                                                                      | Required | Default                                      | Example/Allowed Values                                                                                                                                                                                                                                               |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `falcon_client_id`              | CrowdStrike API Client ID for authentication                                                                     | **Yes**  | -                                            | `${{ vars.FALCON_CLIENT_ID }}`                                                                                                                                                                                                                                       |
-| `falcon_region`                 | CrowdStrike API region                                                                                           | **Yes**  | `us-1`                                       | Allowed values: `us-1, us-2, eu-1, us-gov-1, us-gov-2`                                                                                                                                                                                                               |
-| `version`                       | **FCS CLI tool** version to use (_not the GitHub Action version_)                                                | No       | -                                            | `1.0.0`                                                                                                                                                                                                                                                             |
-| `scan_type`                     | Type of scan to perform                                                                                          | No       | `iac`                                        | Allowed values: `iac, image`                                                                                                                                                                                                                                         |
-| **IaC Scanning Parameters**     |                                                                                                                  |          |                                              |                                                                                                                                                                                                                                                                      |
-| `categories`                    | Include results for the specified categories, accepts a comma-separated list                                     | No       | -                                            | `Access Control,Best Practices`                                                                                                                                                                                                                                      |
-| `config`                        | Path to the scan configuration file                                                                              | No       | -                                            | `./fcs-config.json`                                                                                                                                                                                                                                                  |
-| `disable_secrets_scan`          | Disable scanning of secrets and passwords in target files                                                        | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `exclude_categories`            | Exclude results for the specified categories, accepts a comma-separated list                                     | No       | -                                            | Allowed values: `Access Control, Availability, Backup, Best Practices, Build Process, Encryption, Insecure Configurations, Insecure Defaults, Networking and Firewall, Observability, Resource Management, Secret Management, Supply-Chain, Structure and Semantics` |
-| `exclude_paths`                 | Exclude paths from scan                                                                                          | No       | -                                            | `./sample-dir-to-omit/*,sample-file.tf`                                                                                                                                                                                                                              |
-| `exclude_platforms`             | Exclude results for the specified platforms, accepts a comma-separated list                                      | No       | -                                            | `Ansible, AzureResourceManager, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform`                                                                                                |
-| `exclude_severities`            | Exclude results for the specified severities, accepts a comma-separated list                                     | No       | -                                            | Allowed values: `critical, high, medium, informational`                                                                                                                                                                                                                              |
-| `fail_on`                       | Which kind of results should return a non-zero exit code, accepts a comma-separated list of `<severity>=<value>` | No       | `critical=1,high=1,medium=1,informational=1` |                                                                                                                                                                                                                                                                      |
-| `path`                          | Path to local file, directory or git repo to scan                                                                | No       | -                                            | `./my-local-dir, git::<git repo>, sample-file.tf`                                                                                                                                                                                                                    |
-| `platforms`                     | Include results for the specified platforms, accepts a comma-separated list                                      | No       | -                                            | `Ansible, AzureResourceManager, CloudFormation, Crossplane, DockerCompose, Dockerfile, GoogleDeploymentManager, Kubernetes, OpenAPI, Pulumi, ServerlessFW, Terraform`                                                                                                |
-| `policy_rule`                   | IaC cloud scanning policy-rule                                                                                   | No       | `local`                                      | `local`, `default-iac-alert-rule`                                                                                                                                                                                                                                    |
-| `project_owners`                | Comma-separated list of project owners to notify (max 5)                                                         | No       | -                                            | `john@example.com,jane@example.com`                                                                                                                                                                                                                                  |
-| `severities`                    | Include results for the specified severities, accepts a comma-separated list                                     | No       | -                                            | Allowed values: `critical, high, medium, informational`                                                                                                                                                                                                                              |
-| `timeout`                       | Timeout for the scan in seconds                                                                                  | No       | `500`                                        | `900`                                                                                                                                                                                                                                                                |
-| **Image Scanning Parameters**   |                                                                                                                  |          |                                              |                                                                                                                                                                                                                                                                      |
-| `image`                         | Container image to scan (required for image scanning)                                                            | **Yes*** | -                                            | `nginx:latest, quay.io/org/app:v1.0`                                                                                                                                                                                                                                 |
-| `socket`                        | Custom socket path for container engine                                                                          | No       | -                                            | `unix:///var/run/docker.sock`                                                                                                                                                                                                                                        |
-| `platform`                      | Target platform for multi-platform images                                                                       | No       | `linux/amd64`                                | `linux/amd64, linux/arm64, windows/amd64`                                                                                                                                                                                                                            |
-| `vulnerability_only`            | Scan for vulnerabilities only                                                                                   | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `sbom_only`                     | Generate SBOM only                                                                                               | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `minimum_score`                 | Only show vulnerabilities with CVSS score at or above this threshold                                            | No       | -                                            | `0.0-10.0`                                                                                                                                                                                                                                                            |
-| `minimum_severity`              | Only show vulnerabilities with this severity or higher                                                           | No       | -                                            | Allowed values: `low, medium, high, critical`                                                                                                                                                                                                                        |
-| `minimum_exprt`                 | Only show vulnerabilities with this ExPRT rating or higher                                                       | No       | -                                            | Allowed values: `low, medium, high, critical`                                                                                                                                                                                                                        |
-| `exclude_vulnerabilities`       | Comma-separated list of vulnerability IDs to exclude                                                            | No       | -                                            | `CVE-2023-1234,CVE-2023-5678`                                                                                                                                                                                                                                        |
-| `vuln_fixable_only`             | Exclude vulnerabilities without a fix                                                                           | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `report_sort_by`                | Sort report by vulnerability, ExPRT rating, severity or score                                                    | No       | -                                            | `severity/asc, score/desc, vulnerability/asc`                                                                                                                                                                                                                        |
-| `show_full_description`         | Show full vulnerability descriptions without truncation                                                           | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `show_full_detection_details`   | Show full detection details without truncation                                                                   | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `minimum_detection_severity`    | Only show detections with this severity or higher                                                                | No       | -                                            | Allowed values: `low, medium, high, critical`                                                                                                                                                                                                                        |
-| `no_color`                      | Disable colored output for severity levels and ExPRT ratings                                                     | No       | `false`                                      | Allowed values: `true, false`                                                                                                                                                                                                                                        |
-| `temp_dir`                      | Custom directory for temporary files                                                                             | No       | -                                            | `./temp`                                                                                                                                                                                                                                                              |
-| **Common Parameters**           |                                                                                                                  |          |                                              |                                                                                                                                                                                                                                                                      |
-| `output_path`                   | Path to save the scan results                                                                                    | No       | `./`                                         | `./scan-results`                                                                                                                                                                                                                                                     |
-| `report_formats`                | Formats in which reports are to be written, accepts a comma-separated list                                       | No       | `json`                                       | IaC: `json, csv, junit, sarif`; Image: `json, sarif, sbom-cylconedx`                                                                                                                                                                                                 |
-| `upload_results`                | Upload scan results to the CrowdStrike Falcon Console                                                            | No       | `false`                                      | `true`                                                                                                                                                                                                                                                               |
+### Core Configuration
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `falcon_client_id` | CrowdStrike API Client ID | **Yes** | - | `${{ vars.FALCON_CLIENT_ID }}` |
+| `falcon_region` | CrowdStrike API region | **Yes** | **us-1**| **Allowed values**:</br>us-1</br>us-2</br>eu-1</br>us-gov-1</br>us-gov-2 |
+| `version` | FCS CLI tool version to use | No | uses the latest | `2.0.2` |
+| `scan_type` | Type of scan to perform | No | `iac` | **Allowed values**:</br>iac</br>image |
+
+### Common Parameters
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `output_path` | Path to save scan results | No | `./` | `./scan-results` |
+| `report_formats` | Report output formats | No | `json` | **Allowed values**:</br>**IaC**: json, csv, junit, sarif<br>**Image**: json, sarif, sbom-cylconedx |
+| `upload_results` | Upload to Falcon Console | No | `false` | **Allowed values**:</br>true</br>false |
+
+<details>
+<summary><strong>🛠️ IaC Scanning Parameters</strong> (Click to expand)</summary>
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `path` | Path to scan (file/dir/git repo) | No | - | `./dir`</br>`git::repo`</br>`file.tf` |
+| `config` | Path to configuration file | No | - | `./fcs-config.json` |
+| `policy_rule` | IaC scanning policy rule | No | `local` | **Allowed values**:</br>local</br>default-iac-alert-rule |
+| `timeout` | Scan timeout in seconds | No | `500` | `900` |
+| `disable_secrets_scan` | Disable secrets scanning | No | `false` | **Allowed values**:</br>true</br>false |
+| `project_owners` | Project owners to notify (max 5) | No | - | `john@example.com,jane@example.com` |
+
+#### Filtering & Categorization
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `categories` | Include specified categories | No | - | See [Categories](#reference-categories) |
+| `exclude_categories` | Exclude specified categories | No | - | See [Categories](#reference-categories) |
+| `platforms` | Include specified platforms | No | - | See [Platforms](#reference-platforms) |
+| `exclude_platforms` | Exclude specified platforms | No | - | See [Platforms](#reference-platforms) |
+| `severities` | Include specified severities | No | - | **Allowed values**:</br>critical</br>high</br>medium</br>informational |
+| `exclude_severities` | Exclude specified severities | No | - | **Allowed values**:</br>critical</br>high</br>medium</br>informational |
+| `exclude_paths` | Exclude paths from scan | No | - | `./test/*,file.tf` |
+| `fail_on` | Exit codes for severity levels | No | critical=1,</br>high=1,</br>medium=1,</br>informational=1 | `critical=5,high=10` |
+
+</details>
+
+<details>
+<summary><strong>🐳 Image Scanning Parameters</strong> (Click to expand)</summary>
+
+#### Basic Image Settings
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `image` | Container image to scan | **Yes*** | - | `nginx:latest`</br>`quay.io/org/app:v1.0` |
+| `socket` | Custom container engine socket | No | - | `unix:///var/run/docker.sock` |
+| `platform` | Target platform (os/arch/variant) | No | `linux/amd64` | `linux/amd64`</br>`linux/arm64`</br>`windows/amd64` |
+| `temp_dir` | Custom temp directory | No | - | `/local/tmp` |
+
+#### Scan Mode Options
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `vulnerability_only` | Scan vulnerabilities only | No | `false` | **Allowed values**:</br>true</br>false |
+| `sbom_only` | Generate SBOM only | No | `false` | **Allowed values**:</br>true</br>false |
+
+#### Vulnerability Filtering
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `minimum_score` | Min CVSS score threshold | No | - | `0.0-10.0` |
+| `minimum_severity` | Min vulnerability severity | No | - | **Allowed values**:</br>low</br>medium</br>high</br>critical |
+| `minimum_exprt` | Min ExPRT rating | No | - | **Allowed values**:</br>low</br>medium</br>high</br>critical |
+| `exclude_vulnerabilities` | Exclude vulnerability IDs | No | - | `CVE-2023-1234,CVE-2023-5678` |
+| `vuln_fixable_only` | Exclude unfixable vulnerabilities | No | `false` | **Allowed values**:</br>true</br>false |
+
+#### Detection & Display Options
+
+| Input | Description | Required | Default | Example/Values |
+| ----- | ----------- | -------- | ------- | -------------- |
+| `minimum_detection_severity` | Min detection severity | No | - | **Allowed values**:</br>low</br>medium</br>high</br>critical |
+| `report_sort_by` | Sort report by criteria | No | - | `severity/asc`</br>`score/desc`</br>`vulnerability/asc` |
+| `show_full_description` | Show full vuln descriptions | No | `false` | **Allowed values**:</br>true</br>false |
+| `show_full_detection_details` | Show full detection details | No | `false` | **Allowed values**:</br>true</br>false |
+| `no_color` | Disable colored output | No | `false` | **Allowed values**:</br>true</br>false |
+
+> **Note**: *Required only when `scan_type` is `image`
+
+</details>
+
+## Reference Values
+
+<details>
+<summary id="reference-categories"><strong>📋 Available Categories</strong> (Click to expand)</summary>
+
+For use with `categories` and `exclude_categories` parameters:
+
+- **Access Control** - Authentication, authorization, and access management
+- **Availability** - High availability and disaster recovery configurations
+- **Backup** - Data backup and recovery configurations
+- **Best Practices** - General security and operational best practices
+- **Build Process** - CI/CD and build pipeline security
+- **Encryption** - Data encryption at rest and in transit
+- **Insecure Configurations** - Misconfigurations that create security risks
+- **Insecure Defaults** - Default settings that should be changed
+- **Networking and Firewall** - Network security and firewall rules
+- **Observability** - Logging, monitoring, and auditing
+- **Resource Management** - Resource allocation and management
+- **Secret Management** - Secrets, keys, and credential management
+- **Supply-Chain** - Supply chain security concerns
+- **Structure and Semantics** - Code structure and syntax issues
+
+</details>
+
+<details>
+<summary id="reference-platforms"><strong>✅ Supported Platforms</strong> (Click to expand)</summary>
+
+For use with `platforms` and `exclude_platforms` parameters:
+
+- **Ansible** - Ansible playbooks and configurations
+- **AzureResourceManager** - Azure ARM templates
+- **CloudFormation** - AWS CloudFormation templates
+- **Crossplane** - Crossplane configurations
+- **DockerCompose** - Docker Compose files
+- **Dockerfile** - Docker container definitions
+- **GoogleDeploymentManager** - Google Cloud Deployment Manager
+- **Kubernetes** - Kubernetes manifests and configurations
+- **OpenAPI** - OpenAPI/Swagger specifications
+- **Pulumi** - Pulumi infrastructure code
+- **ServerlessFW** - Serverless Framework configurations
+- **Terraform** - Terraform infrastructure code
+
+</details>
 
 ## Outputs
 
-| Output      | Description                   |
-| ----------- | ----------------------------- |
+| Output | Description |
+| ------ | ----------- |
 | `exit-code` | Exit code of the FCS CLI tool |
 
 ## Examples
