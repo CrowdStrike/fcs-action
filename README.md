@@ -22,8 +22,12 @@ This GitHub Action allows you to run the CrowdStrike Falcon Cloud Security (FCS)
 
 Ensure the following API scopes are assigned to the client:
 
-- **Sensor Download**[read]
-- **Infrastructure as Code**[read,write]
+| Scope | Permission |
+|---------|-------------|
+| Infrastructure as Code | *READ* & *WRITE* |
+| Falcon Container CLI | *READ* & *WRITE* |
+| Falcon Container Image | *READ* & *WRITE* |
+
 
 ### Create a GitHub Secret
 
