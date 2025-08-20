@@ -28,7 +28,6 @@ Ensure the following API scopes are assigned to the client:
 | Falcon Container CLI | *READ* & *WRITE* |
 | Falcon Container Image | *READ* & *WRITE* |
 
-
 ### Create a GitHub Secret
 
 This action relies on the environment variable `FALCON_CLIENT_SECRET` to authenticate with the CrowdStrike API.
@@ -40,7 +39,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 | **FCS CLI Version** | **FCS Action Version** |
 | ------------------- | ---------------------- |
 | **`>= 2.0.0`**      | **`>= 2.0.0`**         |
-| **`>= 1.0.0`**      | **`>= 1.1.0`**         |
+| **`>= 1.0.0`** and **`< 2.0.0`**  | **`>= 1.1.0`** and **`< 2.0.0`** |
 | **`< 1.0.0`**       | **`< 1.1.0`**          |
 
 ## Usage
