@@ -39,6 +39,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 
 | **FCS CLI Version** | **FCS Action Version** |
 | ------------------- | ---------------------- |
+| **`>= 2.0.0`**      | **`>= 2.0.0`**         |
 | **`>= 1.0.0`**      | **`>= 1.1.0`**         |
 | **`< 1.0.0`**       | **`< 1.1.0`**          |
 
