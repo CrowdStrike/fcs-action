@@ -290,6 +290,7 @@ def main():
     print("CrowdStrike FCS download with falconpy")
     print("=" * 60)
     # Get inputs from environment (GitHub Actions sets these)
+    bin_path = os.getenv("INPUT_FALCON_BIN_PATH", "/opt/crowdstrike/bin")
     client_id = os.getenv("INPUT_FALCON_CLIENT_ID")
     client_secret = os.getenv(
         "FALCON_CLIENT_SECRET"
@@ -319,7 +320,6 @@ def main():
         print(f"ERROR: Failed to initialize FCS downloader: {e}")
         sys.exit(1)
     # Download FCS
-    bin_path = "/opt/crowdstrike/bin"
     fcs_binary_path = downloader.download_fcs(target_version=version, bin_path=bin_path)
     if fcs_binary_path:
         # Set GitHub Actions output
@@ -339,3 +339,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
