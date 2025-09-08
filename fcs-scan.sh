@@ -88,7 +88,7 @@ convert_json_to_sarif() {
                 log "convert_json_to_sarif: Converting $json_file to $sarif_file"
 
                 # Use the Python converter
-                if python3 "$GITHUB_WORKSPACE/json_to_sarif_converter.py" "$json_file" "$sarif_file" 2>/dev/null; then
+                if python3 "$GITHUB_ACTION_PATH/json_to_sarif_converter.py" "$json_file" "$sarif_file" 2>/dev/null; then
                     ((success_count++))
                     log "convert_json_to_sarif: Successfully converted $json_file to $sarif_file"
                 else
