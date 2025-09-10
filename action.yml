@@ -153,7 +153,7 @@ runs:
       run: python $GITHUB_ACTION_PATH/fcs_download.py
       shell: bash
       env:
-        INPUT_FALCON_BIN_PATH: ${{ inputs.bin_path }}
+        INPUT_BIN_PATH: ${{ inputs.bin_path }}
         INPUT_FALCON_CLIENT_ID: ${{ inputs.falcon_client_id }}
         INPUT_FALCON_REGION: ${{ inputs.falcon_region }}
         INPUT_VERSION: ${{ inputs.version }}
