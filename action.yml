@@ -5,7 +5,7 @@ branding:
   color: 'red'
 inputs:
   bin_path:
-    description: 'The location that Crowdstrike should use for the binary'
+    description: 'FCS binary installation path (defaults to $RUNNER_TEMP)'
     required: false
   falcon_client_id:
     description: 'CrowdStrike API Client ID for authentication'

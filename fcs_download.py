@@ -234,7 +234,7 @@ class FCSDownloader:
     def download_fcs(
         self,
         target_version: Optional[str] = None,
-        bin_path: str = "/opt/crowdstrike/bin",
+        bin_path: str = "/tmp",
     ) -> Optional[str]:
         """Main method to download FCS."""
         # Step 1: Detect platform
@@ -290,7 +290,7 @@ def main():
     print("CrowdStrike FCS download with falconpy")
     print("=" * 60)
     # Get inputs from environment (GitHub Actions sets these)
-    bin_path = os.getenv("INPUT_FALCON_BIN_PATH", "/opt/crowdstrike/bin")
+    bin_path = os.getenv("INPUT_FALCON_BIN_PATH", os.getenv("RUNNER_TEMP", "/tmp"))
     client_id = os.getenv("INPUT_FALCON_CLIENT_ID")
     client_secret = os.getenv(
         "FALCON_CLIENT_SECRET"
