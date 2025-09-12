@@ -80,8 +80,7 @@ To use this action in your workflow, add the following step:
 
 | Input | Description | Required | Default | Example/Values |
 | ----- | ----------- | -------- | ------- | -------------- |
-| `output_path` | Path to save scan results | No | `./` | `./scan-results` |
-| `report_formats` | Report output formats | No | `json` | **Allowed values**:</br>**IaC**: json, csv, junit, sarif<br>**Image**: json, sarif, sbom-cylconedx |
+| `timeout` | Timeout for scan in seconds | No | `300` | `600` |
 | `upload_results` | Upload to Falcon Console | No | `false` | **Allowed values**:</br>true</br>false |
 
 <details>
@@ -90,6 +89,8 @@ To use this action in your workflow, add the following step:
 | Input | Description | Required | Default | Example/Values |
 | ----- | ----------- | -------- | ------- | -------------- |
 | `path` | Path to scan (file/dir/git repo) | No | - | `./dir`</br>`git::repo`</br>`file.tf` |
+| `output_path` | Path to save scan results</br>**NOTE: Must be a directory** | No | `./` | `./scan-results` |
+| `report_formats` | List of output formats for reports | No | `json` | **Allowed values**:</br>json, csv, junit, sarif |
 | `config` | Path to configuration file | No | - | `./fcs-config.json` |
 | `policy_rule` | IaC scanning policy rule | No | `local` | **Allowed values**:</br>local</br>default-iac-alert-rule |
 | `timeout` | Scan timeout in seconds | No | `500` | `900` |
@@ -119,6 +120,8 @@ To use this action in your workflow, add the following step:
 | Input | Description | Required | Default | Example/Values |
 | ----- | ----------- | -------- | ------- | -------------- |
 | `image` | Container image to scan | **Yes*** | - | `nginx:latest`</br>`quay.io/org/app:v1.0` |
+| `output_path` | File path to save scan results.</br>**NOTE: must be a file, not a directory.** | No |  | `./scan-results.json` |
+| `report_formats` | A **single** output format for generated report | No | `json` | **Allowed values**:</br>**Image**: json, sarif, sbom-cylconedx |
 | `socket` | Custom container engine socket | No | - | `unix:///var/run/docker.sock` |
 | `platform` | Target platform (os/arch/variant) | No | `linux/amd64` | `linux/amd64`</br>`linux/arm64`</br>`windows/amd64` |
 | `temp_dir` | Custom temp directory | No | - | `/local/tmp` |
