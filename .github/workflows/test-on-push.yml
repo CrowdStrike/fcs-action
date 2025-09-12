@@ -33,6 +33,7 @@ jobs:
           image: nginx:latest
           report_formats: sarif
           minimum_severity: medium
+          timeout: 600
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 

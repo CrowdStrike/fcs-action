@@ -262,6 +262,7 @@ set_parameters() {
             "REPORT_SORT_BY:report-sort-by"
             "MINIMUM_DETECTION_SEVERITY:minimum-detection-severity"
             "TEMP_DIR:temp-dir"
+            "TIMEOUT:timeout"
         )
 
         for param in "${input_params[@]}"; do
