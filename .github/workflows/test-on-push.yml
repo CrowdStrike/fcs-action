@@ -68,9 +68,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create IaC scan results directory
-        run: mkdir iac-scan-results
-
       - name: Test IaC scan
         uses: ./
         with:

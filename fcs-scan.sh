@@ -128,6 +128,31 @@ path_exists() {
     [[ "$path" =~ ^git:: ]] || [[ -e "$path" ]] || die "Path/file does not exist: $path"
 }
 
+ensure_output_directory() {
+    local output_path="$1"
+
+    # Skip if no output path provided
+    if [[ -z "$output_path" ]]; then
+        return
+    fi
+
+    # Determine if this is a directory or file path
+    local dir_path
+    if [[ "$output_path" == */ ]] || [[ ! "$output_path" =~ \. ]]; then
+        # Ends with / or has no extension - treat as directory
+        dir_path="$output_path"
+    else
+        # Has extension - get parent directory
+        dir_path=$(dirname "$output_path")
+    fi
+
+    # Create directory if it doesn't exist
+    if [[ ! -d "$dir_path" ]]; then
+        log "Creating output directory: $dir_path"
+        mkdir -p "$dir_path" || die "Failed to create output directory: $dir_path"
+    fi
+}
+
 validate_path() {
     local scan_type="${INPUT_SCAN_TYPE:-iac}"
 
@@ -221,8 +246,12 @@ set_parameters() {
             local input_var="INPUT_${param%%:*}"
             local param_name="${param#*:}"
             if [[ -n "${!input_var:-}" ]]; then
+                # Special handling for output path - ensure directory exists
+                if [[ "$param_name" == "output-path" ]]; then
+                    ensure_output_directory "${!input_var}"
+                    params+=("--${param_name} ${!input_var}")
                 # Special handling for report formats - replace sarif with json if needed
-                if [[ "$param_name" == "report-formats" ]]; then
+                elif [[ "$param_name" == "report-formats" ]]; then
                     local prepared_formats
                     prepared_formats=$(prepare_report_formats_for_cli)
                     params+=("--${param_name} ${prepared_formats}")
