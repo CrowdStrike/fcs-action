@@ -33,6 +33,7 @@ jobs:
           image: nginx:latest
           report_formats: sarif
           minimum_severity: medium
+          timeout: 600
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
@@ -66,9 +67,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Create IaC scan results directory
-        run: mkdir iac-scan-results
 
       - name: Test IaC scan
         uses: ./
