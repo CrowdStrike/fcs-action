@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/CrowdStrike/fcs-action/compare/v2.0.1...v2.0.2) (2025-09-12)
+
+
+### Bug Fixes
+
+* adds timeout support for image scan, cleans up docs, and ensure output path dir exists for iac ([#41](https://github.com/CrowdStrike/fcs-action/issues/41)) ([3f8c435](https://github.com/CrowdStrike/fcs-action/commit/3f8c435b6f8ccb6064e6f29ff54a877aca14ccaa))
+
 ## [2.0.1](https://github.com/CrowdStrike/fcs-action/compare/v2.0.0...v2.0.1) (2025-09-10)
 
 

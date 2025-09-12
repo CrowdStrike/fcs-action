@@ -48,7 +48,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: 'abcdefghijk123456789'
     falcon_region: 'us-1'
@@ -213,7 +213,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -227,7 +227,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -242,7 +242,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -257,7 +257,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   id: fcs
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
@@ -280,7 +280,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -299,7 +299,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -316,7 +316,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Image for Vulnerabilities Only
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -337,7 +337,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Generate SBOM
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'eu-1'
@@ -355,7 +355,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Advanced Image Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -380,7 +380,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan and Upload to Falcon
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -399,7 +399,7 @@ For use with `platforms` and `exclude_platforms` parameters:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Multi-Platform Image
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -422,7 +422,7 @@ You can also use configuration files to customize the scan parameters. For more 
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v2.0.1
+  uses: crowdstrike/fcs-action@v2.0.2
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
