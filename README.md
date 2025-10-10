@@ -205,7 +205,26 @@ For use with `platforms` and `exclude_platforms` parameters:
 
 | Output | Description |
 | ------ | ----------- |
-| `exit-code` | Exit code of the FCS CLI tool |
+| `exit-code` | Exit code of the FCS CLI tool. Returns `0` on success, non-zero when vulnerabilities match `fail_on` criteria or scan errors occur |
+
+## Controlling Pipeline Flow with FCS CLI Exit Codes
+
+The FCS action provides an `exit-code` output that allows you to control whether your pipeline continues or stops based on scan results. This is useful when you want to conditionally run subsequent steps based on scan outcomes
+
+### How Exit Codes Work
+
+The exit code of the action should remain `0` which denotes a successful run of the action, while the output `exit-code` reflects the result of the FCS CLI scan:
+
+- **`0`**: Scan completed successfully with no issues matching your `fail_on` criteria
+- **Non-zero**: Scan found vulnerabilities/issues that match your `fail_on` criteria, or an error occurred
+
+The exit code behavior is controlled by the `fail_on` parameter:
+
+```yaml
+# This configuration will cause the action to return a non-zero exit code
+# if ANY vulnerabilities are found at these severity levels
+fail_on: 'critical=1,high=1,medium=1,informational=1'
+```
 
 ## Examples
 
@@ -252,6 +271,7 @@ For use with `platforms` and `exclude_platforms` parameters:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
 <!-- x-release-please-end -->
+
 
 ### Upload SARIF report to GitHub Code scanning on non-zero exit code
 <!-- x-release-please-start-version -->
@@ -309,6 +329,27 @@ For use with `platforms` and `exclude_platforms` parameters:
     report_formats: json
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+```
+<!-- x-release-please-end -->
+
+### Continue pipeline on zero exit code (no vulnerabilities match fail_on criteria)
+<!-- x-release-please-start-version -->
+```yaml
+- name: Scan Container Image
+  uses: crowdstrike/fcs-action@v2.0.2
+  with:
+    falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+    falcon_region: 'us-1'
+    scan_type: image
+    image: nginx:latest
+    output_path: './image-scan-results/'
+    report_formats: json
+  env:
+    FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+
+- name: Continue piepline to push image, etc
+    if: steps.fcs.outputs.exit-code = 0
+    ...
 ```
 <!-- x-release-please-end -->
 
