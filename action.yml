@@ -144,6 +144,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Python
+      if: ${{ inputs.bypass_pythonsetup  == 'false' }} 
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
