@@ -4,6 +4,10 @@ branding:
   icon: 'shield'
   color: 'red'
 inputs:
+  bypass_pythonsetup:
+    description: 'Bypass python setup step'
+    required: false
+    default: 'false'
   bin_path:
     description: 'FCS binary installation path (defaults to $RUNNER_TEMP)'
     required: false
