@@ -284,7 +284,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     falcon_region: 'eu-1'
     path: './cloudformation'
     report_formats: 'sarif'
-    output_path: './scan-results'
+    output_path: './scan-results.sarif'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
@@ -292,7 +292,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     uses: github/codeql-action/upload-sarif@v3
     if: steps.fcs.outputs.exit-code != 0
     with:
-      sarif_file: ./scan-results
+      sarif_file: ./scan-results.sarif
 ```
 <!-- x-release-please-end -->
 
