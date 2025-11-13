@@ -262,7 +262,8 @@ def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]
             },
             "properties": {
                 "tags": ["vulnerability", "security"],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": base_score
             }
         })
 
