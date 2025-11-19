@@ -97,3 +97,45 @@ jobs:
         if: always() && hashFiles('iac-scan-results/*.sarif') != ''
         with:
           sarif_file: iac-scan-results
+
+  test-iac-scan-output:
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
+    runs-on: ubuntu-latest
+    name: IaC file as output path
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test IaC scan
+        uses: ./
+        with:
+          falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+          falcon_region: ${{ vars.FALCON_CLOUD_REGION }}
+          scan_type: iac
+          path: tests/
+          output_path: './scan-results.sarif'
+          report_formats: sarif
+        env:
+          FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+
+      - name: Show scan results
+        run: |
+          ls -la
+          echo "Looking for SARIF files..."
+          find . -name "*.sarif" -type f || echo "No SARIF files found"
+
+      - name: Upload sarif file
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('./*.sarif') != ''
+        with:
+          sarif_file: './scan-results.sarif'
