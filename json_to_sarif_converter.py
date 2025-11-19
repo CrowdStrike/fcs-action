@@ -206,6 +206,9 @@ def create_sarif_report(scan_data: Dict[str, Any]) -> Dict[str, Any]:
 def convert_image_vulnerabilities(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:  # pylint: disable=R0914
     """Convert image vulnerability findings to SARIF results."""
     vulnerabilities = scan_data.get("Vulnerabilities", [])
+    # Handle case where Vulnerabilities is explicitly set to null (e.g., with --vulnerability-only or other flags)
+    if vulnerabilities is None:
+        vulnerabilities = []
 
     for vuln_item in vulnerabilities:
         if vuln_item is None:
@@ -522,6 +525,9 @@ def convert_policy_response(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
 def convert_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert secret findings to SARIF results."""
     secrets = scan_data.get("secrets", [])
+    # Handle case where secrets is explicitly set to null
+    if secrets is None:
+        secrets = []
 
     for secret in secrets:
         rule_id = f"secret/{secret.get('type', 'unknown')}"
@@ -570,6 +576,9 @@ def convert_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
 def convert_malware(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
     """Convert malware findings to SARIF results."""
     malware_list = scan_data.get("malware", [])
+    # Handle case where malware is explicitly set to null
+    if malware_list is None:
+        malware_list = []
 
     for malware in malware_list:
         rule_id = f"malware/{malware.get('type', 'unknown')}"
