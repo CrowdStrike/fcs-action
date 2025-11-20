@@ -46,11 +46,6 @@ convert_json_to_sarif() {
         output_path="${INPUT_OUTPUT_PATH}"
     elif [ "$INPUT_SCAN_TYPE" = "image" ] && [ "$INPUT_OUTPUT_PATH" ]; then
         output_path="${INPUT_OUTPUT_PATH}"
-        # If the original output path ended with .sarif, the actual file was created with .json
-        if [[ "$output_path" == *.sarif ]]; then
-            output_path="${output_path%.sarif}.json"
-            log "convert_json_to_sarif: Output path adjusted from .sarif to .json: $output_path"
-        fi
     else
         output_path="$HOME/.crowdstrike/image_assessment/reports/"
     fi
@@ -59,18 +54,35 @@ convert_json_to_sarif() {
 
     # Look for all .json files - handle both file and directory paths
     local all_json_files
-    if [[ -f "$output_path" && "$output_path" == *.json ]]; then
-        # Handle single JSON file case (typically for image scans)
+    if [[ -f "$output_path" ]]; then
+        # Handle single file case (can be .json or .sarif containing JSON content)
         all_json_files="$output_path"
-        log "convert_json_to_sarif: Processing single JSON file: $output_path"
+        if [[ "$output_path" == *.sarif ]]; then
+            log "convert_json_to_sarif: Processing file with .sarif extension containing JSON: $output_path"
+        else
+            log "convert_json_to_sarif: Processing single JSON file: $output_path"
+        fi
     elif [[ -d "$output_path" ]]; then
-        # Handle directory case (typically for IaC scans)
+        # Handle directory case
         all_json_files=$(find "$output_path" -name "*.json" 2>/dev/null)
         log "convert_json_to_sarif: Searching directory for JSON files"
     else
-        # Path doesn't exist or is not a file/directory
-        all_json_files=""
-        log "convert_json_to_sarif: Path does not exist or is not a file/directory: $output_path" "WARN"
+        # For image scans, try adjusting .sarif to .json if the original path doesn't exist
+        if [[ "$INPUT_SCAN_TYPE" = "image" && "$output_path" == *.sarif ]]; then
+            local json_path="${output_path%.sarif}.json"
+            if [[ -f "$json_path" ]]; then
+                output_path="$json_path"
+                all_json_files="$output_path"
+                log "convert_json_to_sarif: Found JSON file at adjusted path: $output_path"
+            else
+                all_json_files=""
+                log "convert_json_to_sarif: Neither original nor adjusted path exists: $output_path" "WARN"
+            fi
+        else
+            # Path doesn't exist or is not a file/directory
+            all_json_files=""
+            log "convert_json_to_sarif: Path does not exist or is not a file/directory: $output_path" "WARN"
+        fi
     fi
 
     if [[ -n "$all_json_files" ]]; then
@@ -82,8 +94,16 @@ convert_json_to_sarif() {
             if [[ -n "$json_file" ]]; then
                 ((total_count++))
 
-                # Generate SARIF filename
-                local sarif_file="${json_file%.json}.sarif"
+                # Generate SARIF filename - handle both .json and .sarif extensions
+                local sarif_file
+                if [[ "$json_file" == *.sarif ]]; then
+                    # File already has .sarif extension (contains JSON content)
+                    sarif_file="$json_file"
+                    log "convert_json_to_sarif: File already has .sarif extension, will overwrite with SARIF content: $sarif_file"
+                else
+                    # Standard case: .json extension becomes .sarif
+                    sarif_file="${json_file%.json}.sarif"
+                fi
 
                 log "convert_json_to_sarif: Converting $json_file to $sarif_file"
 
@@ -388,7 +408,7 @@ execute_fcs_cli() {
 
     if [[ "$scan_type" == "iac" ]]; then
         # shellcheck disable=SC2086
-        $FCS_CLI_BIN iac scan $args
+        $FCS_CLI_BIN scan iac $args
     elif [[ "$scan_type" == "image" ]]; then
         # shellcheck disable=SC2086
         $FCS_CLI_BIN scan image $INPUT_IMAGE $args
