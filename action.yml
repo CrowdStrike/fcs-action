@@ -4,6 +4,10 @@ branding:
   icon: 'shield'
   color: 'red'
 inputs:
+  bypass_pythonsetup:
+    description: 'Bypass python setup step'
+    required: false
+    default: 'false'
   bin_path:
     description: 'FCS binary installation path (defaults to $RUNNER_TEMP)'
     required: false
@@ -140,6 +144,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Python
+      if: ${{ inputs.bypass_pythonsetup  == 'false' }} 
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
