@@ -131,6 +131,10 @@ inputs:
   temp_dir:
     description: 'Custom directory for temporary files'
     required: false
+  install_python:
+    description: 'Install Python runtime using actions/setup-python. Set to false to skip this step.'
+    required: false
+    default: 'true'
 outputs:
   exit-code:
     description: 'Exit code of the FCS CLI tool'
@@ -140,7 +144,8 @@ runs:
   using: "composite"
   steps:
     - name: Setup Python
-      uses: actions/setup-python@v4
+      if: inputs.install_python != 'false'
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: '3.12'
 

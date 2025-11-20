@@ -74,6 +74,7 @@ To use this action in your workflow, add the following step:
 | `falcon_region` | CrowdStrike API region | **Yes** | **us-1**| **Allowed values**:</br>us-1</br>us-2</br>eu-1</br>us-gov-1</br>us-gov-2 |
 | `version` | FCS CLI tool version to use | No | uses the latest | `2.0.2` |
 | `bin_path` | FCS binary installation path | No | `$RUNNER_TEMP` | `/custom/bin` |
+| `install_python` | Install Python via `actions/setup-python` | No | `true` | **Allowed values**:</br>true</br>false |
 | `scan_type` | Type of scan to perform | No | `iac` | **Allowed values**:</br>iac</br>image |
 
 ### Common Parameters
