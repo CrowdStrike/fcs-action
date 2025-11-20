@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.3](https://github.com/crowdstrike/fcs-action/compare/v2.0.2...v2.0.3) (2025-11-20)
+
+
+### Bug Fixes
+
+* enable GitHub severity levels for SARIF files ([#49](https://github.com/crowdstrike/fcs-action/issues/49)) ([a17e7b3](https://github.com/crowdstrike/fcs-action/commit/a17e7b39c96fec3f0892a5141a26fe2e24aeb4ed))
+* handle output path filenames for IaC SARIF conversion and null fields in image scans ([#50](https://github.com/crowdstrike/fcs-action/issues/50)) ([e6b3a9c](https://github.com/crowdstrike/fcs-action/commit/e6b3a9c6b81820163d1566c48b5429b00c35ca69))
+
+
+### Miscellaneous
+
+* release-please manifest files ([f85683c](https://github.com/crowdstrike/fcs-action/commit/f85683cee79a91355bfe96db22fbd36c068c0a3f))
+* update gitignore ([093d734](https://github.com/crowdstrike/fcs-action/commit/093d734ff4b2f97dab6a59b8654448065227ab11))
+
 ## [2.0.2](https://github.com/CrowdStrike/fcs-action/compare/v2.0.1...v2.0.2) (2025-09-12)
 
 
