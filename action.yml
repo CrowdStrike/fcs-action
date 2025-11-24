@@ -63,6 +63,9 @@ inputs:
   project_owners:
     description: 'Comma-separated list of project owners to notify (max 5)'
     required: false
+  project_name:
+    description: 'Name of the project for identification in Falcon console'
+    required: false
   report_formats:
     description: 'Comma-separated list of formats in which reports are to be written (e.g. json,sarif)'
     required: false
@@ -180,6 +183,7 @@ runs:
         INPUT_PLATFORMS: ${{ inputs.platforms }}
         INPUT_POLICY_RULE: ${{ inputs.policy_rule }}
         INPUT_PROJECT_OWNERS: ${{ inputs.project_owners }}
+        INPUT_PROJECT_NAME: ${{ inputs.project_name }}
         INPUT_REPORT_FORMATS: ${{ inputs.report_formats }}
         INPUT_SEVERITIES: ${{ inputs.severities }}
         INPUT_TIMEOUT: ${{ inputs.timeout }}

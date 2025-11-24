@@ -257,6 +257,7 @@ set_parameters() {
             "PLATFORMS:platforms"
             "POLICY_RULE:policy-rule"
             "PROJECT_OWNERS:project-owners"
+            "PROJECT_NAME:project-name"
             "REPORT_FORMATS:report-formats"
             "SEVERITIES:severities"
             "TIMEOUT:timeout"

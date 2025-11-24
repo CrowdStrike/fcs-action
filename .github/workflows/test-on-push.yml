@@ -77,6 +77,7 @@ jobs:
           path: tests/
           output_path: iac-scan-results/
           report_formats: sarif
+          project_name: fcs-action-test-project
         env:
           FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
