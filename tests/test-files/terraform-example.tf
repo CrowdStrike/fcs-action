@@ -14,12 +14,10 @@ resource "aws_security_group" "web" {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
-    # Should trigger security warning
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # Should trigger security warning
   }
 
   egress {
-    description = "TESTING"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -31,19 +29,10 @@ resource "aws_instance" "web" {
   ami           = "ami-0c55b159cbfafe1d0"
   instance_type = "t2.micro"
 
-  associate_public_ip_address = false
-  monitoring                  = true
-  ebs_optimized              = true
-  vpc_security_group_ids     = [aws_security_group.web.id]
-
-  tags = {
-    Name        = "web-instance"
-    Environment = "development"
-    Purpose     = "web-server"
-  }
-
+  # No encryption specified - potential issue
   root_block_device {
     volume_type = "gp2"
     volume_size = 20
+    # encrypted = false  # Should be encrypted
   }
 }
