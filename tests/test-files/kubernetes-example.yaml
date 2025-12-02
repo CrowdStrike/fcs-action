@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: insecure-pod
+spec:
+  containers:
+  - name: app
+    image: nginx:latest
+    # Security issues below
+    securityContext:
+      privileged: true        # Should trigger security warning
+      runAsRoot: true        # Should trigger security warning
+    ports:
+    - containerPort: 80
+    env:
+    - name: DATABASE_PASSWORD
+      value: "hardcoded-password"  # Should trigger security warning
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: insecure-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 22    # SSH port exposed - potential issue
+    targetPort: 22
+  - port: 3306  # Database port exposed - potential issue
+    targetPort: 3306
+  selector:
+    app: insecure-pod

@@ -4,7 +4,7 @@ This directory contains tests for the CrowdStrike FCS GitHub Action, including b
 
 ## Test Files
 
-- `ansible-playbook.yml` - Ansible playbook with security issues for testing IaC scanning
+- `test-files/` - Directory containing different IaC sample files
 - `config.json` - Configuration file for IaC scanning tests
 - `image-scan-test.yml` - GitHub Actions workflow for testing image scanning functionality
 - `test-image-scan.sh` - Shell script for local testing of image scanning parameters
@@ -27,6 +27,7 @@ chmod +x tests/test-image-scan.sh
 ```
 
 This script will test:
+
 - Parameter generation for different image scanning scenarios
 - Validation logic for both IaC and image scanning
 - Backward compatibility with existing IaC functionality
@@ -44,12 +45,14 @@ chmod +x tests/test-fcs-scan-image-direct.sh
 ```
 
 This comprehensive test script will:
+
 - Test 20 different scanning scenarios using nginx:latest
 - Cover all available options from `./fcs scan image --help`
 - Generate test outputs for verification
 - Test various combinations of flags and parameters
 
 Test scenarios include:
+
 - Basic image scanning
 - Vulnerability-only and SBOM-only modes
 - Different output formats (JSON, SARIF, CycloneDX)
@@ -63,11 +66,13 @@ Test outputs are saved to `test-outputs/` directory for inspection.
 ### GitHub Actions Testing
 
 The `image-scan-test.yml` workflow can be triggered:
+
 - Manually via workflow dispatch
 - On push to main branch
 - On pull requests to main branch
 
 The workflow includes comprehensive tests for:
+
 - Basic image scanning
 - Vulnerability-only scanning
 - Advanced filtering options
@@ -234,6 +239,7 @@ For running the GitHub Actions tests, you'll need these secrets configured:
 ### Test Images
 
 The tests use publicly available images:
+
 - `nginx:latest`
 - `alpine:latest`
 - `ubuntu:20.04`
