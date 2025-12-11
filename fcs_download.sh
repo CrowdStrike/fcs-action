@@ -138,10 +138,10 @@ get_fcs_download_info() {
     encoded_filter=$(echo "$filter" | sed "s/+/%2B/g; s/:/%3A/g")
     
     echo -e "${BLUE}[INFO]${NC} Encoded filter: $encoded_filter" >&2
-    echo -e "${BLUE}[INFO]${NC} Full URL: $api_url?filter=${encoded_filter}&limit=100" >&2
+    echo -e "${BLUE}[INFO]${NC} Full URL: $api_url?filter=${encoded_filter}&limit=100&sort=file_version%7Cdesc" >&2
     
     local response
-    response=$(curl -s -X GET "$api_url?filter=${encoded_filter}&limit=100" \
+    response=$(curl -s -X GET "$api_url?filter=${encoded_filter}&limit=100&sort=file_version%7Cdesc" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token")
     
@@ -162,11 +162,12 @@ get_fcs_download_info() {
     echo "$response"
 }
 
-# Function to extract download info from API response
+# Function to extract download info from API response (gets latest version)
 extract_download_details() {
     local response="$1"
     local detail_type="$2"  # download_url, file_name, file_hash, version
     
+    # API returns results sorted by file_version:desc, so first element is the latest
     case "$detail_type" in
         "download_url")
             echo "$response" | jq -r ".resources[0].download_info.download_url // empty"
