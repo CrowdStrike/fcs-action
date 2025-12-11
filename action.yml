@@ -142,18 +142,9 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-
-    - name: Install Python dependencies
-      run: pip install -r $GITHUB_ACTION_PATH/requirements.txt
-      shell: bash
-
-    - name: Download FCS CLI using falconpy
+    - name: Download FCS CLI using v2 API endpoint
       id: fcs-download
-      run: python $GITHUB_ACTION_PATH/fcs_download.py
+      run: $GITHUB_ACTION_PATH/fcs_download.sh
       shell: bash
       env:
         INPUT_BIN_PATH: ${{ inputs.bin_path }}

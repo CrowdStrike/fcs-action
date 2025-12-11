@@ -24,6 +24,7 @@ Ensure the following API scopes are assigned to the client:
 
 | Scope | Permission |
 |---------|-------------|
+| Cloud Security Tools Download | *READ* |
 | Infrastructure as Code | *READ* & *WRITE* |
 | Falcon Container CLI | *READ* & *WRITE* |
 | Falcon Container Image | *READ* & *WRITE* |
