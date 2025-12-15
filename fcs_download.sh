@@ -135,7 +135,7 @@ get_fcs_download_info() {
     
     # Simple URL encoding for the filter
     local encoded_filter
-    encoded_filter=$(echo "$filter" | sed "s/+/%2B/g; s/:/%3A/g")
+    encoded_filter=$(echo "$filter" | sed "s/+/%2B/g; s/:/%3A/g; s/'/%27/g")
     
     echo -e "${BLUE}[INFO]${NC} Encoded filter: $encoded_filter" >&2
     echo -e "${BLUE}[INFO]${NC} Full URL: $api_url?filter=${encoded_filter}&limit=100&sort=file_version%7Cdesc" >&2
