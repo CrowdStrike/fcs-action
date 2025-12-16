@@ -32,11 +32,11 @@ readonly NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $*"
+    echo -e "${BLUE}[INFO]${NC} $*" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $*"
+    echo -e "${YELLOW}[WARN]${NC} $*" >&2
 }
 
 log_error() {
@@ -44,7 +44,7 @@ log_error() {
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $*"
+    echo -e "${GREEN}[SUCCESS]${NC} $*" >&2
 }
 
 # Function to get OAuth2 token
@@ -52,8 +52,6 @@ get_oauth_token() {
     local client_id="$1"
     local client_secret="$2" 
     local base_url="$3"
-    
-    echo -e "${BLUE}[INFO]${NC} Getting OAuth2 token..." >&2
     
     local token_response
     token_response=$(curl -s -X POST "https://${base_url}/oauth2/token" \
@@ -111,14 +109,9 @@ get_fcs_download_info() {
     local platform="$3"
     local version="$4"
     
-    echo -e "${BLUE}[INFO]${NC} DEBUG: Function called with platform: '$platform', version: '$version'" >&2
-    
     # Parse OS and architecture from platform
     local os=$(echo "$platform" | cut -d' ' -f1)
     local arch=$(echo "$platform" | cut -d' ' -f2)
-    
-    echo -e "${BLUE}[INFO]${NC} DEBUG: Parsed OS: '$os', Architecture: '$arch'" >&2
-    echo -e "${BLUE}[INFO]${NC} Querying FCS files for OS: $os, Architecture: $arch" >&2
     
     local api_url="https://${base_url}/csdownloads/combined/files-download/v2"
     local filter
@@ -130,15 +123,9 @@ get_fcs_download_info() {
         filter="category:'fcs'+os:'${os}'+arch:'${arch}'"
     fi
     
-    echo -e "${BLUE}[INFO]${NC} Making API request to $api_url" >&2
-    echo -e "${BLUE}[INFO]${NC} Filter: $filter" >&2
-    
     # Simple URL encoding for the filter
     local encoded_filter
     encoded_filter=$(echo "$filter" | sed "s/+/%2B/g; s/:/%3A/g; s/'/%27/g")
-    
-    echo -e "${BLUE}[INFO]${NC} Encoded filter: $encoded_filter" >&2
-    echo -e "${BLUE}[INFO]${NC} Full URL: $api_url?filter=${encoded_filter}&limit=100&sort=file_version%7Cdesc" >&2
     
     local response
     response=$(curl -s -X GET "$api_url?filter=${encoded_filter}&limit=100&sort=file_version%7Cdesc" \
@@ -196,14 +183,11 @@ download_and_validate_file() {
     
     local output_path="$output_dir/$file_name"
     
-    echo -e "${BLUE}[INFO]${NC} Downloading $file_name..." >&2
-    
     if ! curl -L -o "$output_path" "$download_url"; then
         log_error "Download failed"
         return 1
     fi
-    
-    echo -e "${BLUE}[INFO]${NC} Validating file hash..." >&2
+
     local file_hash
     if command -v sha256sum > /dev/null; then
         file_hash=$(sha256sum "$output_path" | cut -d' ' -f1)
@@ -235,8 +219,6 @@ extract_and_setup_fcs() {
     local archive_path="$1"
     local bin_path="$2"
     
-    log_info "Extracting FCS binary to $bin_path..."
-    
     # Create bin directory
     mkdir -p "$bin_path"
     
@@ -250,9 +232,6 @@ extract_and_setup_fcs() {
     # Extract based on file extension
     if [[ "$archive_path" == *.tar.gz ]]; then
         # Extract tar.gz
-        log_info "DEBUG: Attempting to extract: '$archive_path'"
-        log_info "DEBUG: Archive path length: ${#archive_path}"
-        log_info "DEBUG: Extracting to: '$TEMP_DIR'"
         
         if ! tar -xzf "$archive_path" -C "$TEMP_DIR"; then
             log_error "Failed to extract tar.gz file"
@@ -301,7 +280,6 @@ extract_and_setup_fcs() {
     # Create log directory that FCS expects
     local log_dir="$HOME/.crowdstrike/log"
     mkdir -p "$log_dir"
-    log_info "Created log directory: $log_dir"
     
     log_success "FCS binary ready at: $fcs_path"
     echo "$fcs_path"
@@ -314,7 +292,6 @@ set_github_output() {
     
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "$name=$value" >> "$GITHUB_OUTPUT"
-        log_info "Set GitHub output: $name=$value"
     else
         # Fallback for older runners
         echo "::set-output name=$name::$value"
@@ -376,7 +353,6 @@ main() {
     # Step 2: Detect platform
     local platform
     platform=$(detect_platform)
-    log_info "Detected platform: $platform"
     
     # Step 3: Get download info from v2 API
     local download_response
@@ -400,8 +376,6 @@ main() {
         exit 1
     fi
     
-    log_info "Using FCS version: $file_version - $file_name"
-    
     # Step 5: Download and validate file
     local downloaded_file
     if ! downloaded_file=$(download_and_validate_file "$download_url" "$file_name" "$file_hash" "$TEMP_DIR"); then
@@ -422,7 +396,6 @@ main() {
     # Add to GitHub Actions PATH
     if [[ -n "${GITHUB_PATH:-}" ]]; then
         echo "$bin_path" >> "$GITHUB_PATH"
-        log_info "Added $bin_path to GitHub PATH"
     fi
     
     log_success ""
