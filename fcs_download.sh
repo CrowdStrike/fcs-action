@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # Configuration
-readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-readonly TEMP_DIR=$(mktemp -d)
+TEMP_DIR=$(mktemp -d)
+readonly TEMP_DIR
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 # Function to get API base URL for region
@@ -69,8 +69,10 @@ get_oauth_token() {
 
 # Function to detect OS and architecture separately
 detect_platform() {
-    local system=$(uname -s | tr '[:upper:]' '[:lower:]')
-    local machine=$(uname -m | tr '[:upper:]' '[:lower:]')
+    local system
+    local machine
+    system=$(uname -s | tr '[:upper:]' '[:lower:]')
+    machine=$(uname -m | tr '[:upper:]' '[:lower:]')
     
     local os arch
     
@@ -110,8 +112,10 @@ get_fcs_download_info() {
     local version="$4"
     
     # Parse OS and architecture from platform
-    local os=$(echo "$platform" | cut -d' ' -f1)
-    local arch=$(echo "$platform" | cut -d' ' -f2)
+    local os
+    local arch
+    os=$(echo "$platform" | cut -d' ' -f1)
+    arch=$(echo "$platform" | cut -d' ' -f2)
     
     local api_url="https://${base_url}/csdownloads/combined/files-download/v2"
     local filter
@@ -199,8 +203,10 @@ download_and_validate_file() {
     fi
     
     # Convert hashes to lowercase for comparison
-    local file_hash_lower=$(echo "$file_hash" | tr '[:upper:]' '[:lower:]')
-    local expected_hash_lower=$(echo "$expected_hash" | tr '[:upper:]' '[:lower:]')
+    local file_hash_lower
+    local expected_hash_lower
+    file_hash_lower=$(echo "$file_hash" | tr '[:upper:]' '[:lower:]')
+    expected_hash_lower=$(echo "$expected_hash" | tr '[:upper:]' '[:lower:]')
     
     if [[ "$file_hash_lower" == "$expected_hash_lower" ]]; then
         echo -e "${GREEN}[SUCCESS]${NC} File hash validated successfully" >&2
@@ -371,10 +377,12 @@ main() {
     if [[ -z "$download_url" || -z "$file_name" || -z "$file_hash" ]]; then
         log_error "Missing required download details"
         log_error "Download URL: $download_url"
-        log_error "File Name: $file_name" 
+        log_error "File Name: $file_name"
         log_error "File Hash: $file_hash"
         exit 1
     fi
+
+    log_info "Found FCS version: ${file_version:-unknown}"
     
     # Step 5: Download and validate file
     local downloaded_file

@@ -20,14 +20,14 @@ This GitHub Action allows you to run the CrowdStrike Falcon Cloud Security (FCS)
 > [!NOTE]
 > API clients are granted one or more API scopes. Scopes allow access to specific CrowdStrike APIs and describe the actions that an API client can perform. To create an API client, see [API Clients and Keys](https://falcon.crowdstrike.com/login/?unilogin=true&next=/api-clients-and-keys).
 
-Ensure the following API scopes are assigned to the client:
+The following API scopes are available:
 
-| Scope | Permission |
-|---------|-------------|
-| Cloud Security Tools Download | *READ* |
-| Infrastructure as Code | *READ* & *WRITE* |
-| Falcon Container CLI | *READ* & *WRITE* |
-| Falcon Container Image | *READ* & *WRITE* |
+| Scope | Permission | Required |
+|---------|-------------|---------------|
+| Cloud Security Tools Download | *READ* | **Always** |
+| Infrastructure as Code | *READ* & *WRITE* | For IaC scanning only |
+| Falcon Container CLI | *READ* & *WRITE* | For Image scanning only |
+| Falcon Container Image | *READ* & *WRITE* | For Image scanning only |
 
 ### Create a GitHub Secret
 
