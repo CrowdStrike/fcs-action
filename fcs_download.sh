@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # Configuration
-readonly TEMP_DIR
 TEMP_DIR=$(mktemp -d)
+readonly TEMP_DIR
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 # Function to get API base URL for region
