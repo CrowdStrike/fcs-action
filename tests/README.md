@@ -139,7 +139,7 @@ The workflow includes comprehensive tests for:
     scan_type: image
     image: python:3.9-slim
     sbom_only: true
-    report_formats: sbom-cylconedx
+    report_formats: cyclonedx-json
 ```
 
 ### Upload Results to Falcon Console
@@ -188,7 +188,7 @@ The action continues to support IaC scanning with the same parameters as before:
 - `falcon_region` - CrowdStrike API region (required)
 - `scan_type` - Type of scan: `iac` or `image` (default: `iac`)
 - `output_path` - Path to save scan results
-- `report_formats` - Output formats (json, sarif, sbom-cylconedx)
+- `report_formats` - Output formats (json, sarif, cyclonedx-json)
 - `upload_results` - Upload results to Falcon Console
 
 ### Image Scanning Parameters
@@ -256,7 +256,7 @@ These images are chosen to provide a variety of vulnerability profiles for testi
 1. **Missing image parameter**: Ensure `image` is specified when `scan_type` is `image`
 2. **Platform issues**: Specify `platform` for multi-arch images if needed
 3. **Output directory**: Ensure `output_path` directory exists or can be created
-4. **Report formats**: Use valid format names (json, sarif, sbom-cylconedx)
+4. **Report formats**: Use valid format names (json, sarif, cyclonedx-json)
 
 ### Debug Mode
 

@@ -123,7 +123,7 @@ To use this action in your workflow, add the following step:
 | ----- | ----------- | -------- | ------- | -------------- |
 | `image` | Container image to scan | **Yes*** | - | `nginx:latest`</br>`quay.io/org/app:v1.0` |
 | `output_path` | File path to save scan results.</br>**NOTE: must be a file, not a directory.** | No |  | `./scan-results.json` |
-| `report_formats` | A **single** output format for generated report | No | `json` | **Allowed values**:</br>**Image**: json, sarif, sbom-cylconedx |
+| `report_formats` | A **single** output format for generated report | No | `json` | **Allowed values**:</br>**Image**: json, sarif, cyclonedx-json |
 | `socket` | Custom container engine socket | No | - | `unix:///var/run/docker.sock` |
 | `platform` | Target platform (os/arch/variant) | No | `linux/amd64` | `linux/amd64`</br>`linux/arm64`</br>`windows/amd64` |
 | `temp_dir` | Custom temp directory | No | - | `/local/tmp` |
@@ -404,7 +404,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     scan_type: image
     image: python:3.9-slim
     sbom_only: true
-    report_formats: sbom-cylconedx
+    report_formats: cyclonedx-json
     output_path: './sbom-results/'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
