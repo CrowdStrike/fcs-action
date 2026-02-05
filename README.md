@@ -344,7 +344,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     falcon_region: 'us-1'
     scan_type: image
     image: nginx:latest
-    output_path: './image-scan-results/'
+    output_path: './image-scan-results.json'
     report_formats: json
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
@@ -361,7 +361,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     falcon_region: 'us-1'
     scan_type: image
     image: nginx:latest
-    output_path: './image-scan-results/'
+    output_path: './image-scan-results.json'
     report_formats: json
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
@@ -386,8 +386,8 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     minimum_severity: high
     minimum_score: 7.0
     vuln_fixable_only: true
-    report_formats: json,sarif
-    output_path: './vuln-results/'
+    report_formats: json
+    output_path: './vuln-results.json'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
@@ -405,7 +405,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     image: python:3.9-slim
     sbom_only: true
     report_formats: cyclonedx-json
-    output_path: './sbom-results/'
+    output_path: './sbom-results.json'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
@@ -429,7 +429,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     report_sort_by: severity/desc
     no_color: true
     platform: linux/amd64
-    output_path: './detailed-scan-results/'
+    output_path: './detailed-scan-results.json'
     report_formats: json
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
@@ -448,7 +448,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     image: myapp:latest
     upload_results: true
     minimum_severity: low
-    output_path: './upload-results/'
+    output_path: './upload-results.json'
     report_formats: json
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
@@ -468,7 +468,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     platform: linux/arm64
     minimum_detection_severity: medium
     temp_dir: './custom-temp'
-    output_path: './multi-platform-results/'
+    output_path: './multi-platform-results.json'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
