@@ -54,11 +54,14 @@ To use this action in your workflow, add the following step:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
     path: './my-iac-directory'
-    project_name: 'my-awesome-project'
+    project_name: '${{ github.repository }}/${{ github.ref_name }}'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 ```
 <!-- x-release-please-end -->
+
+> [!TIP]
+> The `project_name` above uses [GitHub context](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context) variables to distinguish scan results across repositories and branches.
 
 ## Environment Variables
 
