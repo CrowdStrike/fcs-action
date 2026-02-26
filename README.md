@@ -43,6 +43,37 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 | **`>= 1.0.0`** and **`< 2.0.0`**  | **`>= 1.1.0`** and **`< 2.0.0`** |
 | **`< 1.0.0`**       | **`< 1.1.0`**          |
 
+## Important Changes in FCS CLI 2.2.0
+
+> [!IMPORTANT]
+> FCS CLI version 2.2.0 introduces a breaking change for IaC scanning when using multiple report formats.
+
+### IaC: Multiple Report Formats Require Directory Path
+
+**What Changed:** When requesting multiple report formats (e.g., `json,sarif`), the `output_path` parameter must now be a **directory path**, not a file path.
+
+**Migration Required:**
+- **Before (CLI < 2.2.0):** `output_path: './my-report.out'` with `report_formats: 'json,sarif'` ✅
+- **After (CLI >= 2.2.0):** `output_path: './reports'` with `report_formats: 'json,sarif'` ✅
+- **After (CLI >= 2.2.0):** `output_path: './my-report.out'` with `report_formats: 'json,sarif'` ❌ **Will fail**
+
+**Valid Configurations:**
+```yaml
+# Single format - file path is OK
+report_formats: 'json'
+output_path: './my-report.json'
+
+# Multiple formats - must use directory path
+report_formats: 'json,sarif'
+output_path: './reports'
+
+# Multiple formats - omit output_path to use defaults
+report_formats: 'json,sarif'
+# Uses default: ~/.crowdstrike/reports/
+```
+
+**Why This Changed:** This ensures consistent file naming when generating multiple report formats and prevents file naming conflicts.
+
 ## Usage
 
 To use this action in your workflow, add the following step:
@@ -94,7 +125,7 @@ To use this action in your workflow, add the following step:
 | Input | Description | Required | Default | Example/Values |
 | ----- | ----------- | -------- | ------- | -------------- |
 | `path` | Path to scan (file/dir/git repo) | No | - | `./dir`</br>`git::repo`</br>`file.tf` |
-| `output_path` | Path to save scan results</br>**NOTE: Must be a directory** | No | `./` | `./scan-results` |
+| `output_path` | Path to save scan results</br>**NOTE: Must be a directory when using multiple report formats** (FCS CLI 2.2.0+) | No | `./` | `./scan-results` |
 | `report_formats` | List of output formats for reports | No | `json` | **Allowed values**:</br>json, csv, junit, sarif |
 | `config` | Path to configuration file | No | - | `./fcs-config.json` |
 | `policy_rule` | IaC scanning policy rule | No | `local` | **Allowed values**:</br>local</br>default-iac-alert-rule |
@@ -137,6 +168,9 @@ To use this action in your workflow, add the following step:
 | ----- | ----------- | -------- | ------- | -------------- |
 | `vulnerability_only` | Scan vulnerabilities only | No | `false` | **Allowed values**:</br>true</br>false |
 | `sbom_only` | Generate SBOM only | No | `false` | **Allowed values**:</br>true</br>false |
+| `strict_digest` | Enable strict digest validation</br>(requires FCS CLI 2.2.0+) | No | `false` | **Allowed values**:</br>true</br>false |
+
+> **Note on strict_digest:** When enabled, image scans enforce digest validation to ensure consistency between build and registry. The scan will fail if the image has uncompressed layers that cannot be pulled from a registry with correct digests. This feature helps with image traceability in compliance scenarios. When disabled (default), scans proceed with a warning if uncompressed layers are detected.
 
 #### Vulnerability Filtering
 
@@ -347,6 +381,24 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
     falcon_region: 'us-1'
     scan_type: image
     image: nginx:latest
+    output_path: './image-scan-results.json'
+    report_formats: json
+  env:
+    FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+```
+<!-- x-release-please-end -->
+
+### Image scan with strict digest validation (FCS CLI 2.2.0+)
+<!-- x-release-please-start-version -->
+```yaml
+- name: Scan Container Image with Strict Digest Validation
+  uses: crowdstrike/fcs-action@v3.0.0
+  with:
+    falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
+    falcon_region: 'us-1'
+    scan_type: image
+    image: nginx:latest
+    strict_digest: true
     output_path: './image-scan-results.json'
     report_formats: json
   env:

@@ -387,6 +387,14 @@ set_parameters() {
             die "Invalid value for 'no-color'. Should be 'true' or 'false'."
         fi
 
+        local strict_digest
+        strict_digest=$(validate_bool "${INPUT_STRICT_DIGEST:-}")
+        if [[ "$strict_digest" == "true" ]]; then
+            params+=("--strict-digest")
+        elif [[ "$strict_digest" == "Invalid" ]]; then
+            die "Invalid value for 'strict-digest'. Should be 'true' or 'false'."
+        fi
+
         local upload_results
         upload_results=$(validate_bool "${INPUT_UPLOAD_RESULTS:-}")
         if [[ "$upload_results" == "true" ]]; then
