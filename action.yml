@@ -134,6 +134,10 @@ inputs:
   temp_dir:
     description: 'Custom directory for temporary files'
     required: false
+  strict_digest:
+    description: 'Enable strict digest validation for container images (enforces digest consistency between build and registry)'
+    required: false
+    default: 'false'
 outputs:
   exit-code:
     description: 'Exit code of the FCS CLI tool'
@@ -196,3 +200,4 @@ runs:
         INPUT_MINIMUM_DETECTION_SEVERITY: ${{ inputs.minimum_detection_severity }}
         INPUT_NO_COLOR: ${{ inputs.no_color }}
         INPUT_TEMP_DIR: ${{ inputs.temp_dir }}
+        INPUT_STRICT_DIGEST: ${{ inputs.strict_digest }}
