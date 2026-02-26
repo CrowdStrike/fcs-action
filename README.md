@@ -80,7 +80,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -271,7 +271,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -285,7 +285,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -300,7 +300,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -315,7 +315,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan with Project Name
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -333,7 +333,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   id: fcs
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
@@ -356,7 +356,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -375,7 +375,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -392,7 +392,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image with Strict Digest Validation
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -410,7 +410,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -431,7 +431,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Image for Vulnerabilities Only
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -452,7 +452,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Generate SBOM
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'eu-1'
@@ -470,7 +470,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Advanced Image Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -495,7 +495,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan and Upload to Falcon
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -514,7 +514,7 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Multi-Platform Image
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -537,7 +537,7 @@ You can also use configuration files to customize the scan parameters. For more 
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v3.0.0
+  uses: crowdstrike/fcs-action@v4.0.0
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
