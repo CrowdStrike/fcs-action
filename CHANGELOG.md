@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0](https://github.com/CrowdStrike/fcs-action/compare/v3.0.0...v4.0.0) (2026-02-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* support cli release 2.2.0 ([#71](https://github.com/CrowdStrike/fcs-action/issues/71))
+
+### Features
+
+* support cli release 2.2.0 ([#71](https://github.com/CrowdStrike/fcs-action/issues/71)) ([4c5e939](https://github.com/CrowdStrike/fcs-action/commit/4c5e939fdfe0197fc89b894ae5ba988280fb3ce3))
+
 ## [3.0.0](https://github.com/crowdstrike/fcs-action/compare/v2.1.0...v3.0.0) (2025-12-17)
 
 
