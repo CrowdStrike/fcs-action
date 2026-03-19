@@ -745,7 +745,8 @@ def convert_iac_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> No
             },
             "properties": {
                 "tags": ["iac", "security", violation.get('category', 'general').lower()],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score(violation.get('severity', 'medium')))
             }
         })
 
@@ -812,7 +813,8 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
             },
             "properties": {
                 "tags": ["secret", "security", "credentials", "iac"],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score("high"))
             }
         })
 
@@ -879,7 +881,8 @@ def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 },
                 "properties": {
                     "tags": ["iac", "security", rule_category.lower().replace(' ', '_')],
-                    "precision": "high"
+                    "precision": "high",
+                    "security-severity": str(map_severity_to_score(severity))
                 }
             })
 
@@ -940,7 +943,8 @@ def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]
             },
             "properties": {
                 "tags": ["policy", "compliance", "iac"],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score(violation.get('severity', 'medium')))
             }
         })
 
