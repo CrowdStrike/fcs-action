@@ -877,7 +877,7 @@ def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 },
                 "help": {
                     "text": detection.get('recommendation', 'Review and fix the configuration issue'),
-                    "markdown": f"**Category:** {rule_category}\\n\\n**Platform:** {platform}\\n\\n**Cloud Provider:** {cloud_provider}\\n\\n**Recommendation:** {detection.get('recommendation', 'Review and fix the configuration issue')}"
+                    "markdown": f"**Category:** {rule_category}\n\n**Platform:** {platform}\n\n**Cloud Provider:** {cloud_provider}\n\n**Recommendation:** {detection.get('recommendation', 'Review and fix the configuration issue')}"
                 },
                 "properties": {
                     "tags": ["iac", "security", rule_category.lower().replace(' ', '_')],
