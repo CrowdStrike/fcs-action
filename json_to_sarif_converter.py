@@ -416,7 +416,8 @@ def convert_image_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> 
             },
             "properties": {
                 "tags": tags,
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score(severity))
             }
         })
 
@@ -744,7 +745,8 @@ def convert_iac_violations(scan_data: Dict[str, Any], run: Dict[str, Any]) -> No
             },
             "properties": {
                 "tags": ["iac", "security", violation.get('category', 'general').lower()],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score(violation.get('severity', 'medium')))
             }
         })
 
@@ -811,7 +813,8 @@ def convert_iac_secrets(scan_data: Dict[str, Any], run: Dict[str, Any]) -> None:
             },
             "properties": {
                 "tags": ["secret", "security", "credentials", "iac"],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score("high"))
             }
         })
 
@@ -874,11 +877,12 @@ def convert_rule_detections(scan_data: Dict[str, Any], run: Dict[str, Any]) -> N
                 },
                 "help": {
                     "text": detection.get('recommendation', 'Review and fix the configuration issue'),
-                    "markdown": f"**Category:** {rule_category}\\n\\n**Platform:** {platform}\\n\\n**Cloud Provider:** {cloud_provider}\\n\\n**Recommendation:** {detection.get('recommendation', 'Review and fix the configuration issue')}"
+                    "markdown": f"**Category:** {rule_category}\n\n**Platform:** {platform}\n\n**Cloud Provider:** {cloud_provider}\n\n**Recommendation:** {detection.get('recommendation', 'Review and fix the configuration issue')}"
                 },
                 "properties": {
                     "tags": ["iac", "security", rule_category.lower().replace(' ', '_')],
-                    "precision": "high"
+                    "precision": "high",
+                    "security-severity": str(map_severity_to_score(severity))
                 }
             })
 
@@ -939,7 +943,8 @@ def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]
             },
             "properties": {
                 "tags": ["policy", "compliance", "iac"],
-                "precision": "high"
+                "precision": "high",
+                "security-severity": str(map_severity_to_score(violation.get('severity', 'medium')))
             }
         })
 
@@ -968,6 +973,35 @@ def convert_iac_policy_violations(scan_data: Dict[str, Any], run: Dict[str, Any]
         }
 
         run["results"].append(result)
+
+
+def map_severity_to_score(severity: str) -> float:
+    """
+    Map severity strings to numeric CVSS-like scores for GitHub security-severity.
+
+    GitHub uses these thresholds for severity badges:
+    >=9.0 = critical, >=7.0 = high, >=4.0 = medium, <4.0 = low
+
+    Args:
+        severity: Severity string from scan data
+
+    Returns:
+        Numeric score as a float
+    """
+    severity_lower = severity.lower() if severity else "medium"
+    severity_scores = {
+        "critical": 9.0,
+        "high": 7.0,
+        "medium": 4.0,
+        "moderate": 4.0,
+        "low": 1.0,
+        "info": 0.0,
+        "information": 0.0,
+        "negligible": 0.0,
+        "none": 0.0,
+        "unknown": 0.0,
+    }
+    return severity_scores.get(severity_lower, 1.0)
 
 
 def map_severity_to_level(severity: str) -> str:
