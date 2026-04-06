@@ -58,25 +58,7 @@ convert_json_to_sarif() {
             log "convert_json_to_sarif: No 'Results saved to file' messages found in CLI output" "WARN"
         fi
     else
-        log "convert_json_to_sarif: CLI output file not found, falling back to path-based discovery" "WARN"
-
-        # Fallback to path-based discovery if output file not available
-        local output_path
-        if [ "$INPUT_SCAN_TYPE" = "iac" ]; then
-            output_path="${INPUT_OUTPUT_PATH}"
-        elif [ "$INPUT_SCAN_TYPE" = "image" ] && [ "$INPUT_OUTPUT_PATH" ]; then
-            output_path="${INPUT_OUTPUT_PATH}"
-        else
-            output_path="$HOME/.crowdstrike/image_assessment/reports/"
-        fi
-
-        # Use directory search as fallback
-        if [[ -d "$output_path" ]]; then
-            all_json_files=$(find "$output_path" -name "*.json" 2>/dev/null | sort)
-            log "convert_json_to_sarif: Using fallback directory search in $output_path"
-        else
-            log "convert_json_to_sarif: Fallback failed - path not a directory: $output_path" "WARN"
-        fi
+        log "convert_json_to_sarif: CLI output file not found at $FCS_CLI_OUTPUT_FILE" "WARN"
     fi
 
     if [[ -n "$all_json_files" ]]; then
