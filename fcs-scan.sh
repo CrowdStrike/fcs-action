@@ -40,70 +40,56 @@ prepare_report_formats_for_cli() {
 }
 
 convert_json_to_sarif() {
-    local output_path
+    local all_json_files=""
 
-    if [ "$INPUT_SCAN_TYPE" = "iac" ]; then
-        output_path="${INPUT_OUTPUT_PATH}"
-    elif [ "$INPUT_SCAN_TYPE" = "image" ] && [ "$INPUT_OUTPUT_PATH" ]; then
-        output_path="${INPUT_OUTPUT_PATH}"
-    else
-        output_path="$HOME/.crowdstrike/image_assessment/reports/"
-    fi
+    # Parse FCS CLI output to find generated files
+    if [[ -f "$FCS_CLI_OUTPUT_FILE" ]]; then
+        log "convert_json_to_sarif: Parsing CLI output from $FCS_CLI_OUTPUT_FILE"
 
-    log "convert_json_to_sarif: Looking for JSON files in: $output_path"
+        # Extract file paths from "Results saved to file: <path>" lines
+        all_json_files=$(grep "Results saved to file:" "$FCS_CLI_OUTPUT_FILE" | \
+                        sed 's/.*Results saved to file: //' | \
+                        grep '\.json$' | \
+                        sort)
 
-    # Look for all .json files - handle both file and directory paths
-    local all_json_files
-    if [[ -f "$output_path" ]]; then
-        # Handle single file case (can be .json or .sarif containing JSON content)
-        all_json_files="$output_path"
-        if [[ "$output_path" == *.sarif ]]; then
-            log "convert_json_to_sarif: Processing file with .sarif extension containing JSON: $output_path"
+        if [[ -n "$all_json_files" ]]; then
+            log "convert_json_to_sarif: Found JSON files from CLI output"
         else
-            log "convert_json_to_sarif: Processing single JSON file: $output_path"
+            log "convert_json_to_sarif: No 'Results saved to file' messages found in CLI output" "WARN"
         fi
-    elif [[ -d "$output_path" ]]; then
-        # Handle directory case
-        all_json_files=$(find "$output_path" -name "*.json" 2>/dev/null)
-        log "convert_json_to_sarif: Searching directory for JSON files"
     else
-        # For image scans, try adjusting .sarif to .json if the original path doesn't exist
-        if [[ "$INPUT_SCAN_TYPE" = "image" && "$output_path" == *.sarif ]]; then
-            local json_path="${output_path%.sarif}.json"
-            if [[ -f "$json_path" ]]; then
-                output_path="$json_path"
-                all_json_files="$output_path"
-                log "convert_json_to_sarif: Found JSON file at adjusted path: $output_path"
-            else
-                all_json_files=""
-                log "convert_json_to_sarif: Neither original nor adjusted path exists: $output_path" "WARN"
-            fi
+        log "convert_json_to_sarif: CLI output file not found, falling back to path-based discovery" "WARN"
+
+        # Fallback to path-based discovery if output file not available
+        local output_path
+        if [ "$INPUT_SCAN_TYPE" = "iac" ]; then
+            output_path="${INPUT_OUTPUT_PATH}"
+        elif [ "$INPUT_SCAN_TYPE" = "image" ] && [ "$INPUT_OUTPUT_PATH" ]; then
+            output_path="${INPUT_OUTPUT_PATH}"
         else
-            # Path doesn't exist or is not a file/directory
-            all_json_files=""
-            log "convert_json_to_sarif: Path does not exist or is not a file/directory: $output_path" "WARN"
+            output_path="$HOME/.crowdstrike/image_assessment/reports/"
+        fi
+
+        # Use directory search as fallback
+        if [[ -d "$output_path" ]]; then
+            all_json_files=$(find "$output_path" -name "*.json" 2>/dev/null | sort)
+            log "convert_json_to_sarif: Using fallback directory search in $output_path"
+        else
+            log "convert_json_to_sarif: Fallback failed - path not a directory: $output_path" "WARN"
         fi
     fi
 
     if [[ -n "$all_json_files" ]]; then
-        log "convert_json_to_sarif: Found JSON files: $all_json_files"
+        log "convert_json_to_sarif: Found JSON files: $(echo "$all_json_files" | tr '\n' ' ')"
         local success_count=0
         local total_count=0
 
         while IFS= read -r json_file; do
-            if [[ -n "$json_file" ]]; then
+            if [[ -n "$json_file" && -f "$json_file" ]]; then
                 ((total_count++))
 
-                # Generate SARIF filename - handle both .json and .sarif extensions
-                local sarif_file
-                if [[ "$json_file" == *.sarif ]]; then
-                    # File already has .sarif extension (contains JSON content)
-                    sarif_file="$json_file"
-                    log "convert_json_to_sarif: File already has .sarif extension, will overwrite with SARIF content: $sarif_file"
-                else
-                    # Standard case: .json extension becomes .sarif
-                    sarif_file="${json_file%.json}.sarif"
-                fi
+                # Generate SARIF filename
+                local sarif_file="${json_file%.json}.sarif"
 
                 log "convert_json_to_sarif: Converting $json_file to $sarif_file"
 
@@ -119,7 +105,12 @@ convert_json_to_sarif() {
 
         log "convert_json_to_sarif: Successfully converted $success_count out of $total_count JSON files to SARIF"
     else
-        log "convert_json_to_sarif: No JSON files found in $output_path" "WARN"
+        log "convert_json_to_sarif: No JSON files found" "WARN"
+    fi
+
+    # Cleanup temp file
+    if [[ -f "$FCS_CLI_OUTPUT_FILE" ]]; then
+        rm -f "$FCS_CLI_OUTPUT_FILE"
     fi
 }
 
@@ -410,6 +401,7 @@ set_parameters() {
 execute_fcs_cli() {
     local args="$1"
     local scan_type="${INPUT_SCAN_TYPE:-iac}"
+    local output_file="/tmp/fcs_cli_output_$$.txt"
 
     cd "$GITHUB_WORKSPACE" || die "Failed to change directory to $GITHUB_WORKSPACE"
 
@@ -417,16 +409,19 @@ execute_fcs_cli() {
 
     if [[ "$scan_type" == "iac" ]]; then
         # shellcheck disable=SC2086
-        $FCS_CLI_BIN scan iac $args
+        $FCS_CLI_BIN scan iac $args 2>&1 | tee "$output_file"
     elif [[ "$scan_type" == "image" ]]; then
         # shellcheck disable=SC2086
-        $FCS_CLI_BIN scan image $INPUT_IMAGE $args
+        $FCS_CLI_BIN scan image $INPUT_IMAGE $args 2>&1 | tee "$output_file"
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
 
-    local exit_code=$?
+    local exit_code=${PIPESTATUS[0]}
     echo "exit-code=$exit_code" >> "$GITHUB_OUTPUT"
+
+    # Export output file path for convert_json_to_sarif to use
+    export FCS_CLI_OUTPUT_FILE="$output_file"
 }
 
 main() {
