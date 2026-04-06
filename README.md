@@ -215,7 +215,7 @@ To use this action in your workflow, add the following step:
 | `output_path` | File path to save scan results.</br>**NOTE: must be a file path ending with .json, .sarif, or .cdx.json**</br>Omit to use CLI default: `~/.crowdstrike/image_assessment/reports/` | No | (uses CLI default) | `./scan-results.json` |
 | `report_formats` | A **single** output format for generated report | No | `json` | **Allowed values**:</br>**Image**: json, sarif, cyclonedx-json |
 | `socket` | Custom container engine socket | No | - | `unix:///var/run/docker.sock` |
-| `platform` | Target platform (os/arch/variant) | No | - | `linux/amd64`</br>`linux/arm64`</br>`windows/amd64` |
+| `platform` | Target platform(s). Single value or comma-separated list (FCS CLI >= 2.3.0) | No | - | `linux/amd64`</br>`linux/amd64,linux/arm64`</br>`windows/amd64` |
 | `temp_dir` | Custom temp directory | No | - | `/local/tmp` |
 
 #### Scan Mode Options

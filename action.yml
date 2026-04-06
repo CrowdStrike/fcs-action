@@ -86,7 +86,7 @@ inputs:
     description: 'Custom socket path for container engine (e.g., unix:///var/run/docker.sock)'
     required: false
   platform:
-    description: 'Target platform for multi-platform images in OS/ARCH[/VARIANT] format (e.g., linux/amd64)'
+    description: 'Target platform(s) for multi-platform images. Single value or comma-separated list in OS/ARCH format (e.g., linux/amd64 or linux/amd64,linux/arm64)'
     required: false
   vulnerability_only:
     description: 'Image scan for vulnerabilities only'
