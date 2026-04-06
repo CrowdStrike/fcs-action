@@ -62,6 +62,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 
 **Scan all architectures (default):**
 
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Scan All Architectures
   uses: crowdstrike/fcs-action@v4.0.0
@@ -70,9 +71,11 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
     image: nginx:latest
     # Omit platform parameter to scan all architectures
 ```
+<!-- x-release-please-end -->
 
 **Scan specific architectures only:**
 
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Specific Architectures
   uses: crowdstrike/fcs-action@v4.0.0
@@ -81,9 +84,11 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
     image: nginx:latest
     platform: linux/amd64,linux/arm64  # New: Comma-separated list
 ```
+<!-- x-release-please-end -->
 
 **Scan single architecture (previous behavior):**
 
+<!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Single Architecture
   uses: crowdstrike/fcs-action@v4.0.0
@@ -92,6 +97,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
     image: nginx:latest
     platform: linux/amd64  # Only scan amd64
 ```
+<!-- x-release-please-end -->
 
 ## Important Changes in FCS CLI 2.2.0
 
@@ -209,7 +215,7 @@ To use this action in your workflow, add the following step:
 | `output_path` | File path to save scan results.</br>**NOTE: must be a file path ending with .json, .sarif, or .cdx.json**</br>Omit to use CLI default: `~/.crowdstrike/image_assessment/reports/` | No | (uses CLI default) | `./scan-results.json` |
 | `report_formats` | A **single** output format for generated report | No | `json` | **Allowed values**:</br>**Image**: json, sarif, cyclonedx-json |
 | `socket` | Custom container engine socket | No | - | `unix:///var/run/docker.sock` |
-| `platform` | Target platform (os/arch/variant) | No | `linux/amd64` | `linux/amd64`</br>`linux/arm64`</br>`windows/amd64` |
+| `platform` | Target platform (os/arch/variant) | No | - | `linux/amd64`</br>`linux/arm64`</br>`windows/amd64` |
 | `temp_dir` | Custom temp directory | No | - | `/local/tmp` |
 
 #### Scan Mode Options
