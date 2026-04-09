@@ -244,26 +244,37 @@ For use with `platforms` and `exclude_platforms` parameters:
 
 | Output | Description |
 | ------ | ----------- |
-| `exit-code` | Exit code of the FCS CLI tool. Returns `0` on success, non-zero when vulnerabilities match `fail_on` criteria or scan errors occur |
+| `exit-code` | Exit code of the FCS CLI tool. Returns `0` on success, non-zero on scan findings or errors. See [Controlling Pipeline Flow](#controlling-pipeline-flow-with-fcs-cli-exit-codes) for details on how exit codes differ between IaC and image scans |
 
 ## Controlling Pipeline Flow with FCS CLI Exit Codes
 
-The FCS action provides an `exit-code` output that allows you to control whether your pipeline continues or stops based on scan results. This is useful when you want to conditionally run subsequent steps based on scan outcomes
+The FCS action provides an `exit-code` output that allows you to control whether your pipeline continues or stops based on scan results. This is useful when you want to conditionally run subsequent steps based on scan outcomes.
 
 ### How Exit Codes Work
 
-The exit code of the action should remain `0` which denotes a successful run of the action, while the output `exit-code` reflects the result of the FCS CLI scan:
+The exit code of the action itself should remain `0` which denotes a successful run of the action, while the output `exit-code` reflects the result of the FCS CLI scan. Exit code behavior differs between IaC and image scans:
 
-- **`0`**: Scan completed successfully with no issues matching your `fail_on` criteria
-- **Non-zero**: Scan found vulnerabilities/issues that match your `fail_on` criteria, or an error occurred
+#### IaC Scans
 
-The exit code behavior is controlled by the `fail_on` parameter:
+For IaC scans, the exit code is controlled locally by the `fail_on` parameter:
+
+- **`0`**: Scan completed with no issues matching your `fail_on` criteria
+- **Non-zero**: Scan found issues that match your `fail_on` criteria, or an error occurred
 
 ```yaml
-# This configuration will cause the action to return a non-zero exit code
-# if ANY vulnerabilities are found at these severity levels
+# This configuration will cause a non-zero exit code
+# if ANY issues are found at these severity levels
 fail_on: 'critical=1,high=1,medium=1,informational=1'
 ```
+
+#### Image Scans
+
+For image scans, the exit code is determined by the **image assessment policy** configured in your Falcon console — not by the `fail_on` parameter (which only applies to IaC scans).
+
+- **`0`**: The image meets the assessment policy defined in the Falcon console
+- **Non-zero (e.g., `2`)**: The image does not meet the policy requirements
+
+To change what triggers a non-zero exit code for image scans, update the image assessment policy in your [Falcon console](https://falcon.crowdstrike.com) under **Falcon Cloud Security** > **Image Assessment Policies**.
 
 ## Examples
 
@@ -406,11 +417,12 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
 ```
 <!-- x-release-please-end -->
 
-### Continue pipeline on zero exit code (no vulnerabilities match fail_on criteria)
+### Continue pipeline on zero exit code (image passes assessment policy)
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image
   uses: crowdstrike/fcs-action@v4.0.0
+  id: fcs
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -421,9 +433,9 @@ fail_on: 'critical=1,high=1,medium=1,informational=1'
   env:
     FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
-- name: Continue piepline to push image, etc
-    if: steps.fcs.outputs.exit-code = 0
-    ...
+- name: Continue pipeline to push image, etc
+  if: steps.fcs.outputs.exit-code == 0
+  ...
 ```
 <!-- x-release-please-end -->
 
