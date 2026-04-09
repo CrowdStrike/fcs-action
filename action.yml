@@ -140,7 +140,7 @@ inputs:
     default: 'false'
 outputs:
   exit-code:
-    description: 'Exit code of the FCS CLI tool'
+    description: 'Exit code of the FCS CLI tool. For IaC scans, determined by the fail_on parameter. For image scans, determined by the image assessment policy configured in the Falcon console.'
     value: ${{ steps.fcs-scan.outputs.exit-code }}
 
 runs:
