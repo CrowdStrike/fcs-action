@@ -195,7 +195,7 @@ The action continues to support IaC scanning with the same parameters as before:
 
 - `image` - Container image to scan (required for image scanning)
 - `socket` - Custom container engine socket path
-- `platform` - Target platform (e.g., linux/amd64, linux/arm64)
+- `platform` - Target platform(s), single value or comma-separated list (e.g., `linux/amd64` or `linux/amd64,linux/arm64`)
 - `vulnerability_only` - Scan for vulnerabilities only
 - `sbom_only` - Generate SBOM only
 - `minimum_score` - Minimum CVSS score threshold (0.0-10.0)
@@ -254,7 +254,7 @@ These images are chosen to provide a variety of vulnerability profiles for testi
 ### Common Issues
 
 1. **Missing image parameter**: Ensure `image` is specified when `scan_type` is `image`
-2. **Platform issues**: Specify `platform` for multi-arch images if needed
+2. **Platform issues**: Specify `platform` for multi-arch images if needed (comma-separated list supported with FCS CLI >= 2.3.0)
 3. **Output directory**: Ensure `output_path` directory exists or can be created
 4. **Report formats**: Use valid format names (json, sarif, cyclonedx-json)
 

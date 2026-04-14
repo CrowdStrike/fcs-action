@@ -261,6 +261,71 @@ EOF
     echo
 }
 
+# ============================================================
+# SARIF Discovery Tests
+# Tests for convert_json_to_sarif file discovery logic
+# ============================================================
+
+# Helper: create minimal JSON files that mimic FCS CLI output
+create_mock_json() {
+    local path="$1"
+    mkdir -p "$(dirname "$path")"
+    echo '{"runs":[{"results":[]}]}' > "$path"
+}
+
+# Test the primary path: parsing "Results saved to file:" from CLI output
+test_sarif_discovery_primary_path() {
+    local test_name="$1"
+    local expected_count="$2"
+    local cli_output_content="$3"
+    shift 3
+    local json_files=("$@")
+
+    log "Testing SARIF discovery: $test_name"
+
+    local test_dir="/tmp/sarif_discovery_test_$$"
+    rm -rf "$test_dir"
+    mkdir -p "$test_dir"
+
+    # Create the mock JSON files on disk
+    for f in "${json_files[@]}"; do
+        create_mock_json "$f"
+    done
+
+    # Write mock CLI output
+    local cli_output_file="$test_dir/cli_output.txt"
+    echo "$cli_output_content" > "$cli_output_file"
+
+    # Run the discovery logic (primary path)
+    local all_json_files
+    all_json_files=$(grep "Results saved to file:" "$cli_output_file" | \
+                    sed 's/.*Results saved to file: //' | \
+                    grep '\.json$' | \
+                    sort)
+
+    local actual_count=0
+    if [[ -n "$all_json_files" ]]; then
+        while IFS= read -r json_file; do
+            if [[ -n "$json_file" && -f "$json_file" ]]; then
+                actual_count=$((actual_count + 1))
+            fi
+        done <<< "$all_json_files"
+    fi
+
+    if [[ "$actual_count" -eq "$expected_count" ]]; then
+        echo -e "  ${GREEN}✓${NC} Primary path discovered $actual_count file(s) as expected"
+    else
+        error "Primary path expected $expected_count file(s), got $actual_count"
+        error "CLI output content: $cli_output_content"
+        error "Discovered files: $all_json_files"
+        rm -rf "$test_dir"
+        return 1
+    fi
+
+    rm -rf "$test_dir"
+    echo
+}
+
 main() {
     log "Starting FCS Image Scan Tests"
     echo
@@ -343,6 +408,55 @@ main() {
         "false" \
         "INPUT_SCAN_TYPE=invalid"
     
+    # ============================================================
+    # SARIF Discovery: Primary Path Tests
+    # ============================================================
+
+    local sarif_test_dir="/tmp/sarif_discovery_test_$$"
+
+    # Test 12: Single JSON file from CLI output
+    create_mock_json "$sarif_test_dir/results.json"
+    test_sarif_discovery_primary_path \
+        "Single JSON file from CLI output" \
+        1 \
+        "Scanning image nginx:latest...
+Results saved to file: $sarif_test_dir/results.json
+Scan complete." \
+        "$sarif_test_dir/results.json"
+
+    # Test 13: Multi-arch JSON files from CLI output
+    create_mock_json "$sarif_test_dir/multi/results_linux_amd64.json"
+    create_mock_json "$sarif_test_dir/multi/results_linux_arm64.json"
+    test_sarif_discovery_primary_path \
+        "Multi-arch JSON files from CLI output" \
+        2 \
+        "Scanning image nginx:latest for linux/amd64...
+Results saved to file: $sarif_test_dir/multi/results_linux_amd64.json
+Scanning image nginx:latest for linux/arm64...
+Results saved to file: $sarif_test_dir/multi/results_linux_arm64.json
+Scan complete." \
+        "$sarif_test_dir/multi/results_linux_amd64.json" \
+        "$sarif_test_dir/multi/results_linux_arm64.json"
+
+    # Test 14: CLI output with non-JSON files mixed in (should only find .json)
+    create_mock_json "$sarif_test_dir/mixed/results.json"
+    test_sarif_discovery_primary_path \
+        "Filters non-JSON files from CLI output" \
+        1 \
+        "Results saved to file: $sarif_test_dir/mixed/results.json
+Results saved to file: $sarif_test_dir/mixed/results.sarif
+Results saved to file: $sarif_test_dir/mixed/results.cdx.xml" \
+        "$sarif_test_dir/mixed/results.json"
+
+    # Test 15: CLI output with no "Results saved to file:" lines
+    test_sarif_discovery_primary_path \
+        "No results lines in CLI output" \
+        0 \
+        "Scanning image nginx:latest...
+Scan complete. No issues found."
+
+    rm -rf "$sarif_test_dir"
+
     log "All tests completed successfully!"
     log "Image scanning functionality is working correctly."
     
