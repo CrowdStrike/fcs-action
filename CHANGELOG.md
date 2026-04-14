@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.1](https://github.com/CrowdStrike/fcs-action/compare/v4.0.0...v4.0.1) (2026-04-14)
+
+
+### Bug Fixes
+
+* improve GitHub Code Scanning severity and display ([#73](https://github.com/CrowdStrike/fcs-action/issues/73)) ([3ce3544](https://github.com/CrowdStrike/fcs-action/commit/3ce354478e9914935b28e0f0ae4ab62f10c673f2))
+* support 2.3.0 multi-arch image scan results ([#77](https://github.com/CrowdStrike/fcs-action/issues/77)) ([c891641](https://github.com/CrowdStrike/fcs-action/commit/c891641a27c3f143fe78329129dd4dff712fdd27))
+
 ## [4.0.0](https://github.com/CrowdStrike/fcs-action/compare/v3.0.0...v4.0.0) (2026-02-26)
 
 
