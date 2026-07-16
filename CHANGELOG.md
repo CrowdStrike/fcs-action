@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.2](https://github.com/CrowdStrike/fcs-action/compare/v4.0.1...v4.0.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* pass falcon region to fcs_scan.sh ([#80](https://github.com/CrowdStrike/fcs-action/issues/80)) ([2ed452a](https://github.com/CrowdStrike/fcs-action/commit/2ed452a25fbd0b0990258c8c3facc42c6f9bf5ff))
+
 ## [4.0.1](https://github.com/CrowdStrike/fcs-action/compare/v4.0.0...v4.0.1) (2026-04-14)
 
 
