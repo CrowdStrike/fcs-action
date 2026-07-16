@@ -274,6 +274,7 @@ set_parameters() {
     elif [[ "$scan_type" == "image" ]]; then
         # Image-specific parameters
         local input_params=(
+            "FALCON_REGION:falcon-region"
             "SOCKET:socket"
             "PLATFORM:platform"
             "OUTPUT_PATH:output"
