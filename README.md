@@ -205,7 +205,7 @@ To use this action in your workflow, add the following step:
 | `upload_results` | Upload to Falcon Console | No | `false` | **Allowed values**:</br>true</br>false |
 | `verbose` | Enable verbose output | No | `false` | **Allowed values**:</br>true</br>false |
 | `profile` | Named profile from FCS CLI configuration | No | `default` | `production` |
-| `falcon_token` | Bearer token for Falcon API calls, skips OAuth2 | No | - | `BEARER <token>` |
+| `falcon_token` | Bearer token for Falcon API calls, skips OAuth2 | No | - | `<token>` |
 
 <details>
 <summary><strong>🛠️ IaC Scanning Parameters</strong> (Click to expand)</summary>

@@ -234,7 +234,6 @@ set_parameters() {
             "SEVERITIES:severities"
             "TIMEOUT:timeout"
             "MAX_FILE_SIZE:max-file-size"
-            "FALCON_TOKEN:falcon-token"
             "PROFILE:profile"
         )
 
@@ -321,7 +320,6 @@ set_parameters() {
             "MINIMUM_DETECTION_SEVERITY:minimum-detection-severity"
             "TEMP_DIR:temp-dir"
             "TIMEOUT:timeout"
-            "FALCON_TOKEN:falcon-token"
             "PROFILE:profile"
         )
 
@@ -440,14 +438,28 @@ execute_fcs_cli() {
 
     cd "$GITHUB_WORKSPACE" || die "Failed to change directory to $GITHUB_WORKSPACE"
 
+    # Build sensitive/quoted args separately so they survive word-splitting of
+    # $args and are never written to the log. A bearer token is passed as a
+    # single argument via a quoted array.
+    local -a secure_args=()
+    if [[ -n "${INPUT_FALCON_TOKEN:-}" ]]; then
+        secure_args+=("--falcon-token" "${INPUT_FALCON_TOKEN}")
+        # --falcon-token needs a region (or profile) to resolve the API base URL.
+        # The image param list already emits --falcon-region; add it for IaC when
+        # a token is supplied and no profile is set.
+        if [[ "$scan_type" == "iac" && -z "${INPUT_PROFILE:-}" && -n "${INPUT_FALCON_REGION:-}" ]]; then
+            secure_args+=("--falcon-region" "${INPUT_FALCON_REGION}")
+        fi
+    fi
+
     log "Executing FCS CLI tool with scan type '$scan_type' and arguments: $args"
 
     if [[ "$scan_type" == "iac" ]]; then
         # shellcheck disable=SC2086
-        $FCS_CLI_BIN scan iac $args 2>&1 | tee "$output_file"
+        $FCS_CLI_BIN scan iac $args "${secure_args[@]}" 2>&1 | tee "$output_file"
     elif [[ "$scan_type" == "image" ]]; then
         # shellcheck disable=SC2086
-        $FCS_CLI_BIN scan image $INPUT_IMAGE $args 2>&1 | tee "$output_file"
+        $FCS_CLI_BIN scan image $INPUT_IMAGE $args "${secure_args[@]}" 2>&1 | tee "$output_file"
     else
         die "Invalid scan_type '$scan_type'. Must be 'iac' or 'image'."
     fi
