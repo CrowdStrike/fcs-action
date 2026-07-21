@@ -94,7 +94,7 @@ inputs:
     required: false
     default: 'false'
   falcon_token:
-    description: 'Bearer token for Falcon API calls, skips OAuth2 authentication. Format: BEARER <token>'
+    description: 'Bearer token for Falcon API calls, skips OAuth2 authentication. Provide the token value only (no "BEARER " prefix)'
     required: false
   verbose:
     description: 'Enable verbose output'
