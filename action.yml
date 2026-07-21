@@ -56,9 +56,24 @@ inputs:
     description: 'Include results for the specified platforms, accepts a comma-separated list (e.g Ansible,CloudFormation)'
     required: false
   policy_rule:
-    description: 'IaC cloud scanning policy-rule. Use "local" for local rules, "default-iac-alert-rule" for cloud-based rules'
+    description: '(Deprecated, ignored as of FCS CLI 3.4.2) Cloud-based rules are now applied by default. Use disable_custom_rules to disable them.'
     required: false
     default: 'local'
+  disable_custom_rules:
+    description: 'Disable fetching cloud-based rules; scan with local rules only'
+    required: false
+    default: 'false'
+  exclude_gitignore:
+    description: 'Disable automatic exclusion of paths listed in .gitignore'
+    required: false
+    default: 'false'
+  max_file_size:
+    description: 'Maximum file size in megabytes for scanning (default 100)'
+    required: false
+  module_cache:
+    description: 'Reuse downloaded Terraform modules across scans via a persistent on-disk cache'
+    required: false
+    default: 'false'
   project_owners:
     description: 'Comma-separated list of project owners to notify (max 5)'
     required: false
@@ -78,6 +93,16 @@ inputs:
     description: 'Upload scan results to the CrowdStrike Falcon Console'
     required: false
     default: 'false'
+  falcon_token:
+    description: 'Bearer token for Falcon API calls, skips OAuth2 authentication. Format: BEARER <token>'
+    required: false
+  verbose:
+    description: 'Enable verbose output'
+    required: false
+    default: 'false'
+  profile:
+    description: 'Named profile from FCS CLI configuration'
+    required: false
   # Image scanning specific inputs
   image:
     description: 'Container image to scan (e.g., nginx:latest, docker://image:tag)'
@@ -133,6 +158,10 @@ inputs:
   temp_dir:
     description: 'Custom directory for temporary files'
     required: false
+  scan_only:
+    description: 'Run image scan without generating report output'
+    required: false
+    default: 'false'
   strict_digest:
     description: 'Enable strict digest validation for container images (enforces digest consistency between build and registry)'
     required: false
@@ -176,6 +205,13 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_PLATFORMS: ${{ inputs.platforms }}
         INPUT_POLICY_RULE: ${{ inputs.policy_rule }}
+        INPUT_DISABLE_CUSTOM_RULES: ${{ inputs.disable_custom_rules }}
+        INPUT_EXCLUDE_GITIGNORE: ${{ inputs.exclude_gitignore }}
+        INPUT_MAX_FILE_SIZE: ${{ inputs.max_file_size }}
+        INPUT_MODULE_CACHE: ${{ inputs.module_cache }}
+        INPUT_FALCON_TOKEN: ${{ inputs.falcon_token }}
+        INPUT_VERBOSE: ${{ inputs.verbose }}
+        INPUT_PROFILE: ${{ inputs.profile }}
         INPUT_PROJECT_OWNERS: ${{ inputs.project_owners }}
         INPUT_PROJECT_NAME: ${{ inputs.project_name }}
         INPUT_REPORT_FORMATS: ${{ inputs.report_formats }}
@@ -200,3 +236,4 @@ runs:
         INPUT_NO_COLOR: ${{ inputs.no_color }}
         INPUT_TEMP_DIR: ${{ inputs.temp_dir }}
         INPUT_STRICT_DIGEST: ${{ inputs.strict_digest }}
+        INPUT_SCAN_ONLY: ${{ inputs.scan_only }}

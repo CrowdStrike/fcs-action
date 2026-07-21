@@ -228,12 +228,14 @@ set_parameters() {
             "FAIL_ON:fail-on"
             "OUTPUT_PATH:output-path"
             "PLATFORMS:platforms"
-            "POLICY_RULE:policy-rule"
             "PROJECT_OWNERS:project-owners"
             "PROJECT_NAME:project-name"
             "REPORT_FORMATS:report-formats"
             "SEVERITIES:severities"
             "TIMEOUT:timeout"
+            "MAX_FILE_SIZE:max-file-size"
+            "FALCON_TOKEN:falcon-token"
+            "PROFILE:profile"
         )
 
         for param in "${input_params[@]}"; do
@@ -263,12 +265,44 @@ set_parameters() {
             die "Invalid value for 'disable-secrets-scan'. Should be 'true' or 'false'."
         fi
 
+        local disable_custom_rules
+        disable_custom_rules=$(validate_bool "${INPUT_DISABLE_CUSTOM_RULES:-}")
+        if [[ "$disable_custom_rules" == "true" ]]; then
+            params+=("--disable-custom-rules")
+        elif [[ "$disable_custom_rules" == "Invalid" ]]; then
+            die "Invalid value for 'disable-custom-rules'. Should be 'true' or 'false'."
+        fi
+
+        local exclude_gitignore
+        exclude_gitignore=$(validate_bool "${INPUT_EXCLUDE_GITIGNORE:-}")
+        if [[ "$exclude_gitignore" == "true" ]]; then
+            params+=("--exclude-gitignore")
+        elif [[ "$exclude_gitignore" == "Invalid" ]]; then
+            die "Invalid value for 'exclude-gitignore'. Should be 'true' or 'false'."
+        fi
+
+        local module_cache
+        module_cache=$(validate_bool "${INPUT_MODULE_CACHE:-}")
+        if [[ "$module_cache" == "true" ]]; then
+            params+=("--module-cache")
+        elif [[ "$module_cache" == "Invalid" ]]; then
+            die "Invalid value for 'module-cache'. Should be 'true' or 'false'."
+        fi
+
         local upload_results
         upload_results=$(validate_bool "${INPUT_UPLOAD_RESULTS:-}")
         if [[ "$upload_results" == "true" ]]; then
             params+=("--upload-results --client-id ${INPUT_FALCON_CLIENT_ID} --client-secret ${FALCON_CLIENT_SECRET} --falcon-region ${INPUT_FALCON_REGION}")
         elif [[ "$upload_results" == "Invalid" ]]; then
             die "Invalid value for 'upload-results'. Should be 'true' or 'false'."
+        fi
+
+        local verbose
+        verbose=$(validate_bool "${INPUT_VERBOSE:-}")
+        if [[ "$verbose" == "true" ]]; then
+            params+=("--verbose")
+        elif [[ "$verbose" == "Invalid" ]]; then
+            die "Invalid value for 'verbose'. Should be 'true' or 'false'."
         fi
 
     elif [[ "$scan_type" == "image" ]]; then
@@ -287,6 +321,8 @@ set_parameters() {
             "MINIMUM_DETECTION_SEVERITY:minimum-detection-severity"
             "TEMP_DIR:temp-dir"
             "TIMEOUT:timeout"
+            "FALCON_TOKEN:falcon-token"
+            "PROFILE:profile"
         )
 
         for param in "${input_params[@]}"; do
@@ -367,6 +403,22 @@ set_parameters() {
             params+=("--strict-digest")
         elif [[ "$strict_digest" == "Invalid" ]]; then
             die "Invalid value for 'strict-digest'. Should be 'true' or 'false'."
+        fi
+
+        local scan_only
+        scan_only=$(validate_bool "${INPUT_SCAN_ONLY:-}")
+        if [[ "$scan_only" == "true" ]]; then
+            params+=("--scan-only")
+        elif [[ "$scan_only" == "Invalid" ]]; then
+            die "Invalid value for 'scan-only'. Should be 'true' or 'false'."
+        fi
+
+        local verbose
+        verbose=$(validate_bool "${INPUT_VERBOSE:-}")
+        if [[ "$verbose" == "true" ]]; then
+            params+=("--verbose")
+        elif [[ "$verbose" == "Invalid" ]]; then
+            die "Invalid value for 'verbose'. Should be 'true' or 'false'."
         fi
 
         local upload_results
