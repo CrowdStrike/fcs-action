@@ -56,7 +56,7 @@ inputs:
     description: 'Include results for the specified platforms, accepts a comma-separated list (e.g Ansible,CloudFormation)'
     required: false
   policy_rule:
-    description: '(Deprecated, ignored as of FCS CLI 3.4.2) Cloud-based rules are now applied by default. Use disable_custom_rules to disable them.'
+    description: '(Deprecated, ignored as of FCS CLI v4.x.x) Cloud-based rules are now applied by default. Use disable_custom_rules to disable them.'
     required: false
     default: 'local'
   disable_custom_rules:
