@@ -61,6 +61,39 @@ convert_json_to_sarif() {
         log "convert_json_to_sarif: CLI output file not found at $FCS_CLI_OUTPUT_FILE" "WARN"
     fi
 
+    # Fallback: if stdout-parsing found nothing (e.g. CLI version changed output format),
+    # try to locate the JSON file(s) using the known output path.
+    if [[ -z "$all_json_files" && -n "${INPUT_OUTPUT_PATH:-}" ]]; then
+        local output_path="${INPUT_OUTPUT_PATH}"
+        # For image scans, the action rewrites a .sarif output_path to .json before passing
+        # it to the CLI (see set_parameters), so derive the same .json path here.
+        if [[ "$output_path" == *.sarif ]]; then
+            output_path="${output_path%.sarif}.json"
+        fi
+        log "convert_json_to_sarif: Falling back to filesystem discovery using output path: $output_path"
+
+        if [[ -f "$output_path" ]]; then
+            # Exact file exists (single-arch or IaC)
+            all_json_files="$output_path"
+            log "convert_json_to_sarif: Fallback found exact file: $output_path"
+        else
+            # Try multi-arch pattern: CLI uses output_path as a prefix and appends arch suffixes
+            local dir_path
+            dir_path=$(dirname "$output_path")
+            local base_name
+            base_name=$(basename "$output_path")
+            # Glob for files starting with base_name and ending in .json
+            local found_files
+            found_files=$(find "$dir_path" -maxdepth 1 -name "${base_name}*.json" 2>/dev/null | sort)
+            if [[ -n "$found_files" ]]; then
+                all_json_files="$found_files"
+                log "convert_json_to_sarif: Fallback found multi-arch files: $(echo "$found_files" | tr '\n' ' ')"
+            else
+                log "convert_json_to_sarif: Fallback: no files found matching $output_path" "WARN"
+            fi
+        fi
+    fi
+
     if [[ -n "$all_json_files" ]]; then
         log "convert_json_to_sarif: Found JSON files: $(echo "$all_json_files" | tr '\n' ' ')"
         local success_count=0
