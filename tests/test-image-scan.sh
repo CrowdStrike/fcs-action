@@ -457,6 +457,90 @@ Scan complete. No issues found."
 
     rm -rf "$sarif_test_dir"
 
+    # ============================================================
+    # SARIF Discovery: Fallback Path Tests (FCS CLI 3.x regression)
+    # When CLI output contains no "Results saved to file:" lines,
+    # convert_json_to_sarif must fall back to INPUT_OUTPUT_PATH.
+    # ============================================================
+
+    test_sarif_discovery_fallback() {
+        local test_name="$1"
+        local input_output_path="$2"
+        local expected_sarif="$3"
+        shift 3
+        local json_files=("$@")
+
+        log "Testing SARIF fallback: $test_name"
+
+        local test_dir="/tmp/sarif_fallback_test_$$"
+        rm -rf "$test_dir"
+        mkdir -p "$test_dir"
+
+        # Create mock JSON file(s) on disk
+        for f in "${json_files[@]}"; do
+            mkdir -p "$(dirname "$f")"
+            echo '{"fcs_version":"3.3.1","rule_detections":[]}' > "$f"
+        done
+
+        # CLI output has NO "Results saved to file:" — simulates FCS 3.3.1
+        local cli_output_file="$test_dir/cli_output.txt"
+        echo "Scanning image nginx:latest..." > "$cli_output_file"
+        echo "Scan complete." >> "$cli_output_file"
+
+        # Run convert_json_to_sarif in a subprocess with the right environment
+        local result
+        result=$(
+            export GITHUB_ACTION_PATH="$PROJECT_ROOT"
+            export INPUT_OUTPUT_PATH="$input_output_path"
+            export FCS_CLI_OUTPUT_FILE="$cli_output_file"
+
+            # Inline the function under test so we don't call main()
+            source <(grep -A 200 '^convert_json_to_sarif()' "$FCS_SCAN_SCRIPT" | \
+                     awk '/^convert_json_to_sarif\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}')
+            source <(grep -A 5 '^log()' "$FCS_SCAN_SCRIPT")
+
+            convert_json_to_sarif 2>&1
+        )
+
+        if [[ -f "$expected_sarif" ]]; then
+            echo -e "  ${GREEN}✓${NC} Fallback produced expected SARIF file: $expected_sarif"
+        else
+            error "Fallback did NOT produce expected SARIF file: $expected_sarif"
+            error "Function output: $result"
+            rm -rf "$test_dir"
+            return 1
+        fi
+
+        rm -rf "$test_dir"
+        # Also remove any output files the converter wrote alongside the input
+        rm -f "${expected_sarif}"
+        echo
+    }
+
+    # Test 16: FCS 3.x regression — .sarif output_path, single JSON on disk
+    local fb_dir="/tmp/sarif_fb16_$$"
+    mkdir -p "$fb_dir"
+    echo '{"fcs_version":"3.3.1","rule_detections":[]}' > "$fb_dir/results.json"
+    test_sarif_discovery_fallback \
+        "Fallback: .sarif output_path maps to .json file on disk" \
+        "$fb_dir/results.sarif" \
+        "$fb_dir/results.sarif" \
+        "$fb_dir/results.json"
+    rm -rf "$fb_dir"
+
+    # Test 17: FCS 3.x regression — .sarif output_path, multi-arch JSON files on disk
+    local fb_dir2="/tmp/sarif_fb17_$$"
+    mkdir -p "$fb_dir2"
+    echo '{"fcs_version":"3.3.1","rule_detections":[]}' > "$fb_dir2/results.json_linux_amd64.json"
+    echo '{"fcs_version":"3.3.1","rule_detections":[]}' > "$fb_dir2/results.json_linux_arm64.json"
+    test_sarif_discovery_fallback \
+        "Fallback: multi-arch files found via prefix glob" \
+        "$fb_dir2/results.sarif" \
+        "$fb_dir2/results.json_linux_amd64.sarif" \
+        "$fb_dir2/results.json_linux_amd64.json" \
+        "$fb_dir2/results.json_linux_arm64.json"
+    rm -rf "$fb_dir2"
+
     log "All tests completed successfully!"
     log "Image scanning functionality is working correctly."
     
