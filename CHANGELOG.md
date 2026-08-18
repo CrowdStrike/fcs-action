@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/CrowdStrike/fcs-action/compare/v5.0.0...v5.0.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* sarif conversion ([#86](https://github.com/CrowdStrike/fcs-action/issues/86)) ([d2989fb](https://github.com/CrowdStrike/fcs-action/commit/d2989fb294879d287d20109c7d689ea81ca36b9c))
+
 ## [4.0.2](https://github.com/CrowdStrike/fcs-action/compare/v4.0.1...v4.0.2) (2026-07-16)
 
 
