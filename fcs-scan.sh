@@ -76,6 +76,16 @@ convert_json_to_sarif() {
             # Exact file exists (single-arch or IaC)
             all_json_files="$output_path"
             log "convert_json_to_sarif: Fallback found exact file: $output_path"
+        elif [[ -d "$output_path" ]]; then
+            # output_path is a directory — search inside it for JSON files
+            local found_files
+            found_files=$(find "$output_path" -maxdepth 1 -name "*.json" 2>/dev/null | sort)
+            if [[ -n "$found_files" ]]; then
+                all_json_files="$found_files"
+                log "convert_json_to_sarif: Fallback found JSON files in directory: $(echo "$found_files" | tr '\n' ' ')"
+            else
+                log "convert_json_to_sarif: Fallback: no JSON files found in directory $output_path" "WARN"
+            fi
         else
             # Try multi-arch pattern: CLI uses output_path as a prefix and appends arch suffixes
             local dir_path
