@@ -541,6 +541,81 @@ Scan complete. No issues found."
         "$fb_dir2/results.json_linux_arm64.json"
     rm -rf "$fb_dir2"
 
+    # ============================================================
+    # SARIF Discovery: Directory output_path fallback (IaC scan)
+    # Regression test for: output_path is a directory (e.g. './scan-results'),
+    # CLI writes JSON files inside it, but primary stdout parse finds nothing.
+    # ============================================================
+
+    test_sarif_discovery_fallback_directory() {
+        local test_name="$1"
+        local input_output_path="$2"
+        local expected_sarif="$3"
+        shift 3
+        local json_files=("$@")
+
+        log "Testing SARIF fallback (directory): $test_name"
+
+        # Create mock JSON file(s) inside the directory
+        for f in "${json_files[@]}"; do
+            mkdir -p "$(dirname "$f")"
+            echo '{"fcs_version":"5.0.1","rule_detections":[]}' > "$f"
+        done
+
+        # CLI output has NO "Results saved to file:" — simulates the failing scenario
+        local cli_output_file="/tmp/sarif_dir_cli_output_$$.txt"
+        echo "Scanning IaC path ...." > "$cli_output_file"
+        echo "Scan complete." >> "$cli_output_file"
+
+        local result
+        result=$(
+            export GITHUB_ACTION_PATH="$PROJECT_ROOT"
+            export INPUT_OUTPUT_PATH="$input_output_path"
+            export FCS_CLI_OUTPUT_FILE="$cli_output_file"
+
+            source <(grep -A 200 '^convert_json_to_sarif()' "$FCS_SCAN_SCRIPT" | \
+                     awk '/^convert_json_to_sarif\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}')
+            source <(grep -A 5 '^log()' "$FCS_SCAN_SCRIPT")
+
+            convert_json_to_sarif 2>&1
+        )
+
+        rm -f "$cli_output_file"
+
+        if [[ -f "$expected_sarif" ]]; then
+            echo -e "  ${GREEN}✓${NC} Directory fallback produced expected SARIF file: $expected_sarif"
+        else
+            error "Directory fallback did NOT produce expected SARIF file: $expected_sarif"
+            error "Function output: $result"
+            for f in "${json_files[@]}"; do rm -f "$f" "${f%.json}.sarif"; done
+            return 1
+        fi
+
+        for f in "${json_files[@]}"; do rm -f "$f" "${f%.json}.sarif"; done
+        echo
+    }
+
+    # Test 18: IaC scan — directory output_path, single JSON written by CLI inside it
+    local scan_dir="/tmp/scan-results-$$"
+    mkdir -p "$scan_dir"
+    test_sarif_discovery_fallback_directory \
+        "Fallback: directory output_path with single JSON inside" \
+        "$scan_dir" \
+        "$scan_dir/scan-results.sarif" \
+        "$scan_dir/scan-results.json"
+    rm -rf "$scan_dir"
+
+    # Test 19: IaC scan — directory output_path, multiple JSON files inside
+    local scan_dir2="/tmp/scan-results2-$$"
+    mkdir -p "$scan_dir2"
+    test_sarif_discovery_fallback_directory \
+        "Fallback: directory output_path with multiple JSON files inside" \
+        "$scan_dir2" \
+        "$scan_dir2/iac-results.sarif" \
+        "$scan_dir2/iac-results.json" \
+        "$scan_dir2/secrets-results.json"
+    rm -rf "$scan_dir2"
+
     log "All tests completed successfully!"
     log "Image scanning functionality is working correctly."
     
