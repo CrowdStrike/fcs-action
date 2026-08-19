@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.2](https://github.com/CrowdStrike/fcs-action/compare/v5.0.1...v5.0.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* convert SARIF when output_path is a directory ([#87](https://github.com/CrowdStrike/fcs-action/issues/87)) ([abdf7ab](https://github.com/CrowdStrike/fcs-action/commit/abdf7ab01fa059802ad478ee2cc353ed9fba4e4c))
+
 ## [5.0.1](https://github.com/CrowdStrike/fcs-action/compare/v5.0.0...v5.0.1) (2026-08-10)
 
 
