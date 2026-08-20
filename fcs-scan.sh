@@ -46,8 +46,12 @@ convert_json_to_sarif() {
     if [[ -f "$FCS_CLI_OUTPUT_FILE" ]]; then
         log "convert_json_to_sarif: Parsing CLI output from $FCS_CLI_OUTPUT_FILE"
 
-        # Extract file paths from "Results saved to file: <path>" lines
+        # Extract file paths from "Results saved to file: <path>" lines.
+        # Strip ANSI escape codes (CLI bolds these lines) and carriage returns
+        # (\r from progress bar) before extracting the path.
         all_json_files=$(grep "Results saved to file:" "$FCS_CLI_OUTPUT_FILE" | \
+                        sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' | \
+                        tr -d '\r' | \
                         sed 's/.*Results saved to file: //' | \
                         grep '\.json$' | \
                         sort)
@@ -284,10 +288,15 @@ set_parameters() {
             local input_var="INPUT_${param%%:*}"
             local param_name="${param#*:}"
             if [[ -n "${!input_var:-}" ]]; then
-                # Special handling for output path - ensure directory exists
+                # Special handling for output path - ensure directory exists and change .sarif to .json
                 if [[ "$param_name" == "output-path" ]]; then
-                    ensure_output_directory "${!input_var}"
-                    params+=("--${param_name} ${!input_var}")
+                    local output_value="${!input_var}"
+                    ensure_output_directory "$output_value"
+                    if [[ "$output_value" == *.sarif ]]; then
+                        output_value="${output_value%.sarif}.json"
+                        log "Output path changed from ${!input_var} to ${output_value} to ensure JSON generation"
+                    fi
+                    params+=("--${param_name} ${output_value}")
                 # Special handling for report formats - replace sarif with json if needed
                 elif [[ "$param_name" == "report-formats" ]]; then
                     local prepared_formats
