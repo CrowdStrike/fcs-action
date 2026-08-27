@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.3](https://github.com/CrowdStrike/fcs-action/compare/v5.0.2...v5.0.3) (2026-08-27)
+
+
+### Bug Fixes
+
+* strip ANSI codes and rewrite .sarif output path for SARIF conversion ([#89](https://github.com/CrowdStrike/fcs-action/issues/89)) ([09d446f](https://github.com/CrowdStrike/fcs-action/commit/09d446fac7ca82481e27d560d2b28447a35cdca4))
+
 ## [5.0.2](https://github.com/CrowdStrike/fcs-action/compare/v5.0.1...v5.0.2) (2026-08-19)
 
 
