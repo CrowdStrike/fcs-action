@@ -94,7 +94,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan All Architectures
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     scan_type: image
     image: nginx:latest
@@ -107,7 +107,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Specific Architectures
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     scan_type: image
     image: nginx:latest
@@ -120,7 +120,7 @@ Create a GitHub secret in your repository to store the CrowdStrike API Client se
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Single Architecture
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     scan_type: image
     image: nginx:latest
@@ -165,7 +165,7 @@ To use this action in your workflow, add the following step:
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -375,7 +375,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -389,7 +389,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -404,7 +404,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -419,7 +419,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan with Project Name
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -437,7 +437,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   id: fcs
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
@@ -460,7 +460,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -479,7 +479,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -496,7 +496,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image with Strict Digest Validation
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -514,7 +514,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Container Image
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   id: fcs
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
@@ -536,7 +536,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Image for Vulnerabilities Only
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -557,7 +557,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Generate SBOM
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'eu-1'
@@ -575,7 +575,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Advanced Image Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -600,7 +600,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan and Upload to Falcon
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
@@ -619,7 +619,7 @@ To change what triggers a non-zero exit code for image scans, update the image a
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Scan Multi-Platform Image
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-2'
@@ -642,7 +642,7 @@ You can also use configuration files to customize the scan parameters. For more 
 <!-- x-release-please-start-version -->
 ```yaml
 - name: Run FCS IaC Scan
-  uses: crowdstrike/fcs-action@v5.0.2
+  uses: crowdstrike/fcs-action@v5.0.3
   with:
     falcon_client_id: ${{ vars.FALCON_CLIENT_ID }}
     falcon_region: 'us-1'
