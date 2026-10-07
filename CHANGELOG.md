@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.4](https://github.com/CrowdStrike/fcs-action/compare/v5.0.3...v5.0.4) (2026-10-07)
+
+
+### Bug Fixes
+
+* IaC output directory creation and invalid boolean handling ([#91](https://github.com/CrowdStrike/fcs-action/issues/91)) ([385206e](https://github.com/CrowdStrike/fcs-action/commit/385206e87b8d7b58e63fd53793e541615f3d3c76))
+
 ## [5.0.3](https://github.com/CrowdStrike/fcs-action/compare/v5.0.2...v5.0.3) (2026-08-27)
 
 
