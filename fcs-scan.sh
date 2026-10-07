@@ -176,9 +176,14 @@ ensure_output_directory() {
         return
     fi
 
-    # Determine if this is a directory or file path
+    # Determine if this is a directory or file path. Only the last path
+    # component can have an extension: the '.' in './' or '../' prefixes and
+    # the leading '.' of a hidden name do not count.
     local dir_path
-    if [[ "$output_path" == */ ]] || [[ ! "$output_path" =~ \. ]]; then
+    local base_name
+    base_name=$(basename "$output_path")
+    base_name="${base_name#.}"
+    if [[ "$output_path" == */ ]] || [[ ! "$base_name" =~ \. ]]; then
         # Ends with / or has no extension - treat as directory
         dir_path="$output_path"
     else
@@ -529,7 +534,9 @@ main() {
     validate_required_inputs
     validate_path
     local args
-    args=$(set_parameters)
+    # set_parameters runs in a subshell, so its die() only exits the subshell.
+    # Stop here if it failed (for example, an invalid boolean input).
+    args=$(set_parameters) || exit 1
     execute_fcs_cli "$args"
 
     # If SARIF format was requested, convert JSON output to SARIF using Python converter
