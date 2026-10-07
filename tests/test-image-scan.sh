@@ -27,6 +27,22 @@ warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
+# Print one function from fcs-scan.sh so that a test can source it:
+#   source <(extract_function set_parameters)
+# The function ends where its braces balance, so this does not depend on the
+# function's line count.
+extract_function() {
+    awk -v name="$1" '
+        $0 ~ "^" name "\\(\\)" { found = 1 }
+        found {
+            print
+            depth += gsub(/{/, "{")
+            depth -= gsub(/}/, "}")
+            if (depth == 0) exit
+        }
+    ' "$FCS_SCAN_SCRIPT"
+}
+
 # Mock environment variables for testing
 export GITHUB_WORKSPACE="$PROJECT_ROOT"
 export GITHUB_OUTPUT="/tmp/github_output_$$"
@@ -495,9 +511,8 @@ Scan complete. No issues found."
             export FCS_CLI_OUTPUT_FILE="$cli_output_file"
 
             # Inline the function under test so we don't call main()
-            source <(grep -A 200 '^convert_json_to_sarif()' "$FCS_SCAN_SCRIPT" | \
-                     awk '/^convert_json_to_sarif\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}')
-            source <(grep -A 5 '^log()' "$FCS_SCAN_SCRIPT")
+            source <(extract_function convert_json_to_sarif)
+            source <(extract_function log)
 
             convert_json_to_sarif 2>&1
         )
@@ -573,9 +588,8 @@ Scan complete. No issues found."
             export INPUT_OUTPUT_PATH="$input_output_path"
             export FCS_CLI_OUTPUT_FILE="$cli_output_file"
 
-            source <(grep -A 200 '^convert_json_to_sarif()' "$FCS_SCAN_SCRIPT" | \
-                     awk '/^convert_json_to_sarif\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}')
-            source <(grep -A 5 '^log()' "$FCS_SCAN_SCRIPT")
+            source <(extract_function convert_json_to_sarif)
+            source <(extract_function log)
 
             convert_json_to_sarif 2>&1
         )
@@ -641,11 +655,10 @@ Scan complete. No issues found."
             export FALCON_CLIENT_SECRET="test-secret"
             export INPUT_FALCON_REGION="us-1"
 
-            source <(grep -A 300 '^set_parameters()' "$FCS_SCAN_SCRIPT" | \
-                     awk '/^set_parameters\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}')
-            source <(grep -A 5 '^validate_bool()' "$FCS_SCAN_SCRIPT")
-            source <(grep -A 20 '^prepare_report_formats_for_cli()' "$FCS_SCAN_SCRIPT")
-            source <(grep -A 20 '^ensure_output_directory()' "$FCS_SCAN_SCRIPT")
+            source <(extract_function set_parameters)
+            source <(extract_function validate_bool)
+            source <(extract_function prepare_report_formats_for_cli)
+            source <(extract_function ensure_output_directory)
             log() { echo "$@" >&2; }
             die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -707,9 +720,8 @@ Scan complete. No issues found."
             export INPUT_OUTPUT_PATH=""
             export FCS_CLI_OUTPUT_FILE="$cli_output_file"
 
-            source <(grep -A 200 '^convert_json_to_sarif()' "$FCS_SCAN_SCRIPT" | \
-                     awk '/^convert_json_to_sarif\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}')
-            source <(grep -A 5 '^log()' "$FCS_SCAN_SCRIPT")
+            source <(extract_function convert_json_to_sarif)
+            source <(extract_function log)
 
             convert_json_to_sarif 2>&1
         )
@@ -805,7 +817,7 @@ Done." \
         mkdir -p "$work_dir/cwd"
         (
             cd "$work_dir/cwd" || exit 1
-            source <(awk '/^ensure_output_directory\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}' "$FCS_SCAN_SCRIPT")
+            source <(extract_function ensure_output_directory)
             log() { :; }
             die() { echo "ERROR: $*" >&2; exit 1; }
             ensure_output_directory "$output_path"
