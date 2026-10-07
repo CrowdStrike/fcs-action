@@ -784,6 +784,66 @@ Done." \
         "$img_dir2/results_linux_arm64.json"
     rm -rf "$img_dir2"
 
+    # ============================================================
+    # IaC output directory creation (ensure_output_directory)
+    # Regression test for: output_path='./reports' with report_formats
+    # 'json,sarif'. The '.' in the './' prefix made the path look like a
+    # file with an extension, so the directory was not created and the CLI
+    # rejected the output path.
+    # ============================================================
+
+    test_ensure_output_directory() {
+        local test_name="$1"
+        local output_path="$2"
+        local expected_dir="$3"
+        local unexpected_dir="${4:-}"
+
+        log "Testing output directory creation: $test_name"
+
+        local work_dir
+        work_dir=$(mktemp -d)
+        mkdir -p "$work_dir/cwd"
+        (
+            cd "$work_dir/cwd" || exit 1
+            source <(awk '/^ensure_output_directory\(\)/{found=1} found{print; brace+=gsub(/{/,""); brace-=gsub(/}/,""); if(found && brace==0) exit}' "$FCS_SCAN_SCRIPT")
+            log() { :; }
+            die() { echo "ERROR: $*" >&2; exit 1; }
+            ensure_output_directory "$output_path"
+        )
+
+        if [[ ! -d "$work_dir/cwd/$expected_dir" ]]; then
+            error "output_path '$output_path' did not create directory '$expected_dir'"
+            rm -rf "$work_dir"
+            return 1
+        fi
+        if [[ -n "$unexpected_dir" && -d "$work_dir/cwd/$unexpected_dir" ]]; then
+            error "output_path '$output_path' created '$unexpected_dir' as a directory"
+            rm -rf "$work_dir"
+            return 1
+        fi
+        echo -e "  ${GREEN}✓${NC} output_path '$output_path' created directory '$expected_dir'"
+        rm -rf "$work_dir"
+        echo
+    }
+
+    # Test 26: './' prefix, no trailing slash (README example for json,sarif)
+    test_ensure_output_directory "./ prefix directory" "./reports" "reports"
+
+    # Test 27: '../' prefix, no trailing slash
+    test_ensure_output_directory "../ prefix directory" "../reports" "../reports"
+
+    # Test 28: hidden directory
+    test_ensure_output_directory "hidden directory" "./.reports" ".reports"
+
+    # Test 29: trailing slash
+    test_ensure_output_directory "trailing slash directory" "./reports/" "reports"
+
+    # Test 30: bare directory name
+    test_ensure_output_directory "bare directory name" "reports" "reports"
+
+    # Test 31: file path creates its parent directory only
+    test_ensure_output_directory "file path" "./out/scan-results.sarif" "out" "out/scan-results.sarif"
+
     log "All tests completed successfully!"
     log "Image scanning functionality is working correctly."
     

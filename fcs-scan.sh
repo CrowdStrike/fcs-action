@@ -176,9 +176,14 @@ ensure_output_directory() {
         return
     fi
 
-    # Determine if this is a directory or file path
+    # Determine if this is a directory or file path. Only the last path
+    # component can have an extension: the '.' in './' or '../' prefixes and
+    # the leading '.' of a hidden name do not count.
     local dir_path
-    if [[ "$output_path" == */ ]] || [[ ! "$output_path" =~ \. ]]; then
+    local base_name
+    base_name=$(basename "$output_path")
+    base_name="${base_name#.}"
+    if [[ "$output_path" == */ ]] || [[ ! "$base_name" =~ \. ]]; then
         # Ends with / or has no extension - treat as directory
         dir_path="$output_path"
     else
