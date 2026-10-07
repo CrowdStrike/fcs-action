@@ -844,6 +844,72 @@ Done." \
     # Test 31: file path creates its parent directory only
     test_ensure_output_directory "file path" "./out/scan-results.sarif" "out" "out/scan-results.sarif"
 
+    # ============================================================
+    # Invalid boolean input must stop the script
+    # Regression test for: set_parameters runs in $(...), so die only left
+    # the subshell. main continued and ran the CLI with no arguments.
+    # ============================================================
+
+    test_invalid_boolean_stops_scan() {
+        local test_name="$1"
+        local expect_cli_call="$2"
+        shift 2
+        local env_vars=("$@")
+
+        log "Testing boolean input handling: $test_name"
+
+        local marker="/tmp/fcs-cli-called-$$"
+        local mock_cli="/tmp/fcs-mock-cli-$$"
+        rm -f "$marker"
+        printf '#!/usr/bin/env bash\necho "$@" > "%s"\n' "$marker" > "$mock_cli"
+        chmod +x "$mock_cli"
+
+        local exit_code=0
+        env OUTPUT_FCS_BIN="$mock_cli" \
+            INPUT_FALCON_CLIENT_ID="test-id" \
+            FALCON_CLIENT_SECRET="test-secret" \
+            INPUT_FALCON_REGION="us-1" \
+            "${env_vars[@]}" \
+            bash "$FCS_SCAN_SCRIPT" >/dev/null 2>&1 || exit_code=$?
+
+        local cli_args=""
+        [[ -f "$marker" ]] && cli_args=$(cat "$marker")
+        rm -f "$marker" "$mock_cli"
+
+        if [[ "$expect_cli_call" == "false" ]]; then
+            if [[ $exit_code -ne 0 && -z "$cli_args" ]]; then
+                echo -e "  ${GREEN}✓${NC} Script exited with code $exit_code and did not run the CLI"
+            else
+                error "Script should have stopped: exit code $exit_code, CLI called with: '${cli_args:-<not called>}'"
+                return 1
+            fi
+        else
+            if [[ $exit_code -eq 0 && "$cli_args" == *"$expect_cli_call"* ]]; then
+                echo -e "  ${GREEN}✓${NC} Script ran the CLI with: $expect_cli_call"
+            else
+                error "Script should have run the CLI with '$expect_cli_call': exit code $exit_code, CLI called with: '${cli_args:-<not called>}'"
+                return 1
+            fi
+        fi
+        echo
+    }
+
+    # Test 32: image scan, invalid vulnerability_only
+    test_invalid_boolean_stops_scan "image scan, vulnerability_only=yes" "false" \
+        "INPUT_SCAN_TYPE=image" "INPUT_IMAGE=alpine:3.20" "INPUT_VULNERABILITY_ONLY=yes"
+
+    # Test 33: image scan, invalid upload_results
+    test_invalid_boolean_stops_scan "image scan, upload_results=yes" "false" \
+        "INPUT_SCAN_TYPE=image" "INPUT_IMAGE=alpine:3.20" "INPUT_UPLOAD_RESULTS=yes"
+
+    # Test 34: IaC scan, invalid disable_secrets_scan
+    test_invalid_boolean_stops_scan "IaC scan, disable_secrets_scan=yes" "false" \
+        "INPUT_SCAN_TYPE=iac" "INPUT_PATH=." "INPUT_DISABLE_SECRETS_SCAN=yes"
+
+    # Test 35: control case, valid boolean runs the CLI with the flag
+    test_invalid_boolean_stops_scan "image scan, vulnerability_only=true" "--vulnerability-only" \
+        "INPUT_SCAN_TYPE=image" "INPUT_IMAGE=alpine:3.20" "INPUT_VULNERABILITY_ONLY=true"
+
     log "All tests completed successfully!"
     log "Image scanning functionality is working correctly."
     

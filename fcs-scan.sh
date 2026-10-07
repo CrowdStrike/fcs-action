@@ -534,7 +534,9 @@ main() {
     validate_required_inputs
     validate_path
     local args
-    args=$(set_parameters)
+    # set_parameters runs in a subshell, so its die() only exits the subshell.
+    # Stop here if it failed (for example, an invalid boolean input).
+    args=$(set_parameters) || exit 1
     execute_fcs_cli "$args"
 
     # If SARIF format was requested, convert JSON output to SARIF using Python converter
